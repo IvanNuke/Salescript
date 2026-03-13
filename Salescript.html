@@ -1,0 +1,1877 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Salescript Workspace</title>
+  <style>
+    :root {
+      --bg: #ece8e1;
+      --panel: #f7f4ee;
+      --card: #ffffff;
+      --line: #d4cec3;
+      --accent: #1d7f8c;
+      --accent-strong: #0f5d67;
+      --accent-soft: #d7eef1;
+      --gold: #d89b2d;
+      --text: #2d2a26;
+      --muted: #736d66;
+      --danger: #b64848;
+      --shadow: 0 14px 36px rgba(63, 42, 22, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+    html {
+      height: 100%;
+      font-size: 11px;
+    }
+    body {
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(216, 155, 45, 0.14), transparent 28%),
+        linear-gradient(180deg, #f5f1ea 0%, var(--bg) 100%);
+    }
+    button, input { font: inherit; }
+    .app-shell { height: 100vh; display: grid; grid-template-rows: auto minmax(0, 1fr); }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      padding: 6px 10px;
+      background: rgba(247, 244, 238, 0.92);
+      border-bottom: 1px solid rgba(212, 206, 195, 0.9);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .brand { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .brand-badge {
+      width: 24px; height: 24px; border-radius: 8px; display: grid; place-items: center;
+      color: #fff; background: linear-gradient(135deg, var(--gold), #ba6c22);
+      box-shadow: var(--shadow); font-size: 12px;
+    }
+    .brand-copy h1 { margin: 0; font-size: 13px; line-height: 1.05; }
+    .brand-copy p { margin: 1px 0 0; color: var(--muted); font-size: 10px; }
+    .topbar-actions { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 5px; }
+    .btn {
+      border: 1px solid transparent; border-radius: 8px; padding: 5px 8px; cursor: pointer;
+      transition: 0.18s ease; background: var(--card); color: var(--text);
+      box-shadow: 0 6px 18px rgba(34, 25, 17, 0.07);
+    }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(34, 25, 17, 0.1); }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-strong)); color: #fff; }
+    .btn-soft { background: var(--accent-soft); color: var(--accent-strong); }
+    .btn-danger { background: #f8e5e5; color: var(--danger); }
+    .btn[disabled] { cursor: default; opacity: 0.55; transform: none; box-shadow: none; }
+    .workspace {
+      display: grid; grid-template-columns: 240px minmax(320px, 1fr) 250px; gap: 8px;
+      padding: 6px; min-height: 0; overflow: hidden;
+    }
+    .panel {
+      background: rgba(247, 244, 238, 0.92); border: 1px solid rgba(212, 206, 195, 0.9);
+      border-radius: 12px; box-shadow: var(--shadow); min-height: 0; overflow: hidden;
+      display: flex; flex-direction: column;
+    }
+    .panel-header {
+      padding: 8px 8px 6px; border-bottom: 1px solid rgba(212, 206, 195, 0.85);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(247, 244, 238, 0.9));
+    }
+    .panel-header h2, .panel-header h3 { margin: 0; font-size: 13px; }
+    .panel-header p { margin: 2px 0 0; color: var(--muted); font-size: 10px; }
+    .sidebar-search {
+      margin-top: 6px; width: 100%; border-radius: 7px; border: 1px solid var(--line);
+      padding: 5px 7px; background: #fff;
+    }
+    .panel-scroll { overflow: auto; min-height: 0; padding: 6px; }
+    .section-group + .section-group { margin-top: 8px; }
+    .section-header { display: flex; align-items: center; justify-content: space-between; gap: 5px; margin-bottom: 5px; }
+    .section-title { margin: 0; font-size: 12px; }
+    .section-subtitle { margin: 2px 0 0; color: var(--muted); font-size: 10px; }
+    .section-card { padding: 6px; background: rgba(255, 255, 255, 0.8); border: 1px solid var(--line); border-radius: 10px; }
+    .script-list { display: grid; gap: 3px; }
+    .script-item {
+      width: 100%; text-align: left; padding: 6px 8px; border-radius: 9px; border: 1px solid #cfe1e4;
+      background: #eef7f8; color: var(--text); cursor: pointer;
+    }
+    .script-item:hover { background: #e4f1f4; }
+    .script-item.active { background: linear-gradient(135deg, #2797a5, var(--accent)); color: #fff; border-color: transparent; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 5px; padding: 6px 8px 0; }
+    .script-meta { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+    .meta-pill { padding: 4px 7px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-strong); font-size: 10px; }
+    .script-content { overflow: auto; padding: 8px; min-height: 0; }
+    .card {
+      background: var(--card); border: 1px solid rgba(212, 206, 195, 0.95);
+      border-radius: 12px; padding: 8px; box-shadow: 0 10px 24px rgba(36, 26, 16, 0.06);
+    }
+    .card + .card { margin-top: 6px; }
+    .script-title-row {
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; margin-bottom: 6px;
+    }
+    .script-title { margin: 0; font-size: 16px; line-height: 1.05; }
+    .script-note { color: var(--muted); font-size: 11px; margin-top: 3px; }
+    .body-block { border: 1px solid transparent; border-radius: 9px; padding: 5px 7px; transition: background 0.18s ease, border-color 0.18s ease; }
+    .body-block:hover { background: #faf8f4; border-color: #efe4d6; }
+    .body-block + .body-block { margin-top: 4px; }
+    .body-block p { margin: 0; white-space: pre-wrap; line-height: 1.2; font-size: 12px; }
+    .body-block p[contenteditable="true"] { white-space: normal; }
+    .body-block.is-dragging { opacity: 0.45; border-color: #7ab3bc; }
+    .body-block.is-drop-target { border-color: #2797a5; background: #eef8f9; }
+    .body-block-row { display: grid; grid-template-columns: auto 1fr; gap: 6px; align-items: start; }
+    .drag-handle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      min-height: 20px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--muted);
+      cursor: grab;
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .drag-handle:active { cursor: grabbing; }
+    .drag-handle::before { content: "⋮⋮"; font-size: 10px; line-height: 1; letter-spacing: -1px; }
+    .script-inline-link {
+      color: #0d6efd;
+      background: rgba(13, 110, 253, 0.08);
+      border-radius: 6px;
+      padding: 0 4px;
+      text-decoration: underline;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 2px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .script-inline-link:hover { color: #084298; }
+    .body-block.is-note p { color: var(--muted); font-style: italic; }
+    .body-block.is-highlight { background: #fff5df; border-color: #f0d191; }
+    .editable { border-radius: 10px; outline: none; }
+    .edit-mode .editable:hover, .edit-mode .editable:focus { background: #fffaf0; box-shadow: 0 0 0 2px rgba(216, 155, 45, 0.35); }
+    .item-actions, .side-actions, .section-item-actions { display: flex; gap: 4px; margin-top: 5px; flex-wrap: wrap; }
+    .item-actions { opacity: 0; transition: opacity 0.18s ease; }
+    .edit-mode .body-block:hover .item-actions,
+    .edit-mode .quick-item:hover .item-actions,
+    .edit-mode .section-card:hover .section-item-actions { opacity: 1; }
+    .icon-btn {
+      border: 1px solid var(--line); background: #fff; border-radius: 6px; padding: 3px 6px; cursor: pointer;
+    }
+    .icon-btn-danger { color: var(--danger); }
+    .quick-grid { display: grid; gap: 6px; }
+    .quick-group h4 { margin: 0 0 5px; font-size: 12px; }
+    .quick-group-list { display: grid; gap: 4px; }
+    .quick-item { padding: 0; border-radius: 0; background: transparent; border: 0; box-shadow: none; }
+    .quick-item.is-active { border-color: #7ab3bc; box-shadow: 0 0 0 2px rgba(29, 127, 140, 0.12); }
+    .quick-item-title { margin: 0; font-size: 11px; }
+    .quick-item-text { display: none; }
+    .quick-item-button {
+      width: 100%;
+      text-align: left;
+      padding: 6px 8px;
+      border-radius: 9px;
+      border: 1px solid #cfe1e4;
+      background: #eef7f8;
+      color: var(--text);
+      cursor: pointer;
+    }
+    .quick-item-button:hover { background: #e4f1f4; }
+    .quick-item.is-active .quick-item-button { background: linear-gradient(135deg, #2797a5, var(--accent)); color: #fff; border-color: transparent; }
+    .quick-response-card { border-color: #b9dfe4; background: linear-gradient(180deg, #fafdff 0%, #eef8f9 100%); }
+    .quick-response-label { margin: 0 0 4px; color: var(--accent-strong); font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .quick-response-title { margin: 0 0 6px; font-size: 15px; }
+    .quick-response-text { margin: 0; line-height: 1.3; font-size: 12px; white-space: pre-wrap; }
+    .toolbar-note { color: var(--muted); font-size: 10px; padding: 6px 2px 0; }
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(26, 22, 17, 0.38); display: grid; place-items: center;
+      padding: 12px; z-index: 50;
+    }
+    .modal-backdrop.hidden { display: none !important; }
+    .modal-card {
+      width: min(620px, 100%); max-height: min(80vh, 700px); overflow: auto; background: var(--panel);
+      border: 1px solid rgba(212, 206, 195, 0.9); border-radius: 16px; box-shadow: var(--shadow); padding: 12px;
+    }
+    .modal-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+    .modal-head h3 { margin: 0; font-size: 15px; }
+    .modal-head p { margin: 3px 0 0; color: var(--muted); font-size: 11px; }
+    .modal-grid { display: grid; gap: 10px; }
+    .modal-section { display: grid; gap: 6px; }
+    .modal-section h4 { margin: 0; font-size: 12px; }
+    .modal-list { display: grid; gap: 6px; max-height: 190px; overflow: auto; }
+    .modal-option {
+      width: 100%; text-align: left; border: 1px solid var(--line); border-radius: 10px; background: #fff; padding: 8px 10px; cursor: pointer;
+    }
+    .modal-option strong { display: block; margin-bottom: 3px; font-size: 12px; }
+    .modal-option span { display: block; color: var(--muted); font-size: 10px; line-height: 1.25; }
+    .modal-option:hover, .modal-option.is-active { border-color: #7ab3bc; background: #f4fbfc; }
+    .modal-field { display: grid; gap: 4px; }
+    .modal-field label { font-size: 10px; color: var(--muted); }
+    .modal-field input, .modal-field select, .modal-field textarea {
+      width: 100%; border: 1px solid var(--line); border-radius: 8px; background: #fff; padding: 7px 8px; font: inherit;
+    }
+    .modal-field textarea { min-height: 72px; resize: vertical; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 6px; margin-top: 6px; }
+    .modal-actions.is-split { justify-content: space-between; }
+    .selection-popover {
+      position: fixed;
+      z-index: 60;
+      padding: 4px;
+      background: rgba(247, 244, 238, 0.98);
+      border: 1px solid rgba(212, 206, 195, 0.95);
+      border-radius: 10px;
+      box-shadow: 0 10px 24px rgba(36, 26, 16, 0.18);
+    }
+    .selection-popover.hidden { display: none !important; }
+    .statusbar {
+      padding: 7px 10px; border-top: 1px solid rgba(212, 206, 195, 0.85); color: var(--muted);
+      font-size: 10px; background: rgba(255, 255, 255, 0.72);
+    }
+    .empty-state {
+      color: var(--muted); text-align: center; padding: 18px 12px; border: 1px dashed var(--line);
+      border-radius: 14px; background: rgba(255, 255, 255, 0.7);
+    }
+    .hidden { display: none !important; }
+    @media (max-width: 1180px) {
+      .workspace { grid-template-columns: 280px 1fr; }
+      .panel-right { grid-column: 1 / -1; }
+    }
+    @media (max-width: 860px) {
+      .topbar { align-items: flex-start; flex-direction: column; }
+      .workspace { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell" id="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-badge">☎</div>
+        <div class="brand-copy">
+          <h1>Salescript Workspace</h1>
+          <p>Единое окно для звонка, правок и хранения скриптов</p>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-primary" id="toggleEditBtn">Редактировать</button>
+        <button class="btn btn-soft" id="addSectionBtn">+ Этап</button>
+        <button class="btn btn-soft" id="addScriptBtn">+ Сценарий</button>
+        <button class="btn btn-soft" id="addBlockBtn">+ Реплика</button>
+        <button class="btn" id="exportBtn">Экспорт JSON</button>
+        <button class="btn" id="importBtn">Импорт JSON</button>
+        <button class="btn btn-danger" id="resetBtn">Сбросить демо</button>
+        <input class="hidden" type="file" id="importInput" accept=".json,application/json">
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="panel">
+        <div class="panel-header">
+          <h2>Структура звонка</h2>
+          <p>Этапы, сценарии и быстрый поиск по базе</p>
+          <input class="sidebar-search" id="searchInput" type="search" placeholder="Найти сценарий или реплику">
+        </div>
+        <div class="panel-scroll" id="sidebar"></div>
+        <div class="statusbar" id="sidebarStatus"></div>
+      </aside>
+
+      <section class="panel">
+        <div class="panel-header" id="contentHeader"></div>
+        <div class="toolbar" id="contentToolbar"></div>
+        <div class="script-content" id="content"></div>
+        <div class="statusbar" id="contentStatus"></div>
+      </section>
+
+      <aside class="panel panel-right">
+        <div class="panel-header">
+          <h3>Быстрые ответы</h3>
+          <p>Вопросы клиента, возражения и короткие шпаргалки справа, без переключения экрана</p>
+        </div>
+        <div class="panel-scroll" id="quickPanel"></div>
+        <div class="statusbar" id="quickStatus"></div>
+      </aside>
+    </main>
+  </div>
+
+  <div class="modal-backdrop hidden" id="linkModal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div>
+          <h3>Добавить ссылку</h3>
+          <p>Выберите существующий быстрый ответ или создайте новый. После выбора ссылка привяжется к выделенному тексту.</p>
+        </div>
+        <button class="icon-btn" id="closeLinkModalBtn">Закрыть</button>
+      </div>
+      <div class="modal-grid">
+        <section class="modal-section">
+          <h4>Готовые быстрые ответы</h4>
+          <div class="modal-list" id="linkModalList"></div>
+          <div class="modal-actions is-split">
+            <div class="toolbar-note">Сначала выберите быстрый ответ из списка.</div>
+            <button class="btn btn-primary" id="attachSelectedLinkBtn">Привязать выделенный текст</button>
+          </div>
+        </section>
+        <section class="modal-section">
+          <h4>Создать новый быстрый ответ</h4>
+          <div class="modal-field">
+            <label for="newQuickGroupSelect">Категория</label>
+            <select id="newQuickGroupSelect"></select>
+          </div>
+          <div class="modal-field">
+            <label for="newQuickTitleInput">Заголовок</label>
+            <input id="newQuickTitleInput" type="text" placeholder="Например: Уточнить сроки">
+          </div>
+          <div class="modal-field">
+            <label for="newQuickTextInput">Текст ответа</label>
+            <textarea id="newQuickTextInput" placeholder="Введите текст быстрого ответа"></textarea>
+          </div>
+          <div class="modal-actions">
+            <button class="btn btn-soft" id="createQuickFromModalBtn">Создать и привязать</button>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <div class="selection-popover hidden" id="selectionPopover">
+    <button class="btn btn-soft" id="selectionPopoverLinkBtn">Создать ссылку</button>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "salescript-workspace-v1";
+
+    const starterData = {
+      meta: { title: "Скрипты продаж по телефону", updatedAt: new Date().toISOString() },
+      sections: [
+        {
+          id: crypto.randomUUID(),
+          title: "1. Начало разговора",
+          note: "Старт звонка и быстрый вывод на предметную беседу",
+          scripts: [
+            {
+              id: crypto.randomUUID(),
+              title: "Первый звонок прорабу постоянщику",
+              summary: "Возврат к постоянному клиенту после паузы в закупках",
+              tags: ["Теплый", "Прораб"],
+              blocks: [
+                { id: crypto.randomUUID(), type: "line", text: "ФИО, день добрый, это Иван, компания Металл Профиль." },
+                { id: crypto.randomUUID(), type: "note", text: "Пауза" },
+                { id: crypto.randomUUID(), type: "line", text: "Удобно сейчас разговаривать?" },
+                { id: crypto.randomUUID(), type: "note", text: "Пауза. Слушаем, что ответит." },
+                { id: crypto.randomUUID(), type: "line", text: "Ага, ФИО, решил вам позвонить, напомнить о себе, узнать, как у вас дела." },
+                { id: crypto.randomUUID(), type: "line", text: "Планируете ли работу с нами в этом сезоне?" },
+                { id: crypto.randomUUID(), type: "highlight", text: "Сейчас какие-то объекты в работе у вас есть, где мы сможем вам помочь с материалом? Или планируются?" },
+                { id: crypto.randomUUID(), type: "line", text: "Когда закуп?" },
+                { id: crypto.randomUUID(), type: "line", text: "ФИО, я смотрю, что в прошлом году к нам нечасто обращались. Это потому, что не было объектов, или нам стоит что-то улучшить?" },
+                { id: crypto.randomUUID(), type: "note", text: "Комментарий менеджера: фиксируй причину паузы и следующий шаг." }
+              ]
+            },
+            {
+              id: crypto.randomUUID(),
+              title: "Старые клиенты постоянщики",
+              summary: "Мягкий возврат через знакомство, остатки и акцию",
+              tags: ["Теплый", "Постоянщик"],
+              blocks: [
+                { id: crypto.randomUUID(), type: "line", text: "Андрей, привет. Это Иван, компания Ю-три Центр. Удобно?" },
+                { id: crypto.randomUUID(), type: "line", text: "Ты в прошлом году интересовался пиломатериалом у нас. Мы пополнили склад перед сезоном, если интересно, могу скинуть остатки." },
+                { id: crypto.randomUUID(), type: "line", text: "Ты сейчас где на связи, Telegram есть?" },
+                { id: crypto.randomUUID(), type: "highlight", text: "Сейчас акция на продукцию Деке, в том числе водосток. У тебя планируются объекты, где он нужен?" }
+              ]
+            },
+            {
+              id: crypto.randomUUID(),
+              title: "Старые клиенты давно не брали",
+              summary: "Выяснить, что изменилось: объем, направление или сервис",
+              tags: ["Возврат", "Диагностика"],
+              blocks: [
+                { id: crypto.randomUUID(), type: "line", text: "ФИО, день добрый, это Иван, компания Ю-три Центр." },
+                { id: crypto.randomUUID(), type: "line", text: "Раньше работали с нами по профлисту и водостоку." },
+                { id: crypto.randomUUID(), type: "line", text: "Решил вам позвонить, напомнить о себе. Давно не пересекались." },
+                { id: crypto.randomUUID(), type: "highlight", text: "Хотел понять: у вас объектов стало меньше или это мы где-то недоработали?" }
+              ]
+            },
+            {
+              id: crypto.randomUUID(),
+              title: "Новый клиент",
+              summary: "Короткий вход и квалификация по закупкам",
+              tags: ["Холодный", "Новый"],
+              blocks: [
+                { id: crypto.randomUUID(), type: "line", text: "Добрый день, Иван, компания Ю-три Центр. Занимаемся кровельными и фасадными материалами. Удобно пару минут поговорить?" },
+                { id: crypto.randomUUID(), type: "line", text: "Подскажите, вы с такими материалами работаете?" },
+                { id: crypto.randomUUID(), type: "line", text: "А чем именно в строительстве занимаетесь?" },
+                { id: crypto.randomUUID(), type: "line", text: "Материалы сами закупаете или заказчик обеспечивает?" },
+                { id: crypto.randomUUID(), type: "highlight", text: "Если есть объекты в работе, можете скинуть объем. Попробую посчитать и предложить интересную цену." }
+              ]
+            }
+          ]
+        },
+        {
+          id: crypto.randomUUID(),
+          title: "2. Выявление потребности",
+          note: "Вывести клиента на текущие объекты, закупку и критерии выбора",
+          scripts: [
+            {
+              id: crypto.randomUUID(),
+              title: "Вопросы менеджера",
+              summary: "Базовый квалификационный блок",
+              tags: ["Потребность"],
+              blocks: [
+                { id: crypto.randomUUID(), type: "line", text: "Какие объекты сейчас в работе?" },
+                { id: crypto.randomUUID(), type: "line", text: "Что из материалов нужно чаще всего?" },
+                { id: crypto.randomUUID(), type: "line", text: "Кто принимает финальное решение по закупке?" },
+                { id: crypto.randomUUID(), type: "highlight", text: "По каким критериям обычно выбираете поставщика: цена, наличие, срок или сервис?" }
+              ]
+            }
+          ]
+        },
+        {
+          id: crypto.randomUUID(),
+          title: "3. Презентация",
+          note: "Короткие заготовки под компанию, продукт и процесс работы",
+          scripts: [
+            {
+              id: crypto.randomUUID(),
+              title: "О компании",
+              summary: "30-секундная презентация",
+              tags: ["Презентация"],
+              blocks: [
+                { id: crypto.randomUUID(), type: "line", text: "Мы специализируемся на кровельных и фасадных материалах, работаем со стройкой регулярно и помогаем быстро закрывать объекты по наличию и срокам." }
+              ]
+            },
+            {
+              id: crypto.randomUUID(),
+              title: "О продукте/услуге",
+              summary: "Как коротко объяснить пользу",
+              tags: ["Продукт"],
+              blocks: [
+                { id: crypto.randomUUID(), type: "line", text: "Подбираем материал под задачу объекта, считаем объем, предлагаем альтернативы и держим в фокусе цену, срок и удобство поставки." }
+              ]
+            },
+            {
+              id: crypto.randomUUID(),
+              title: "Порядок работы",
+              summary: "Как происходит сделка",
+              tags: ["Процесс"],
+              blocks: [
+                { id: crypto.randomUUID(), type: "line", text: "Вы скидываете заявку или объем, мы быстро считаем варианты, согласовываем поставку и остаемся на связи по следующим объектам." }
+              ]
+            }
+          ]
+        },
+        {
+          id: crypto.randomUUID(),
+          title: "4. Завершение разговора",
+          note: "Всегда закрывать на следующий шаг, а не на абстрактное 'подумаю'",
+          scripts: [
+            {
+              id: crypto.randomUUID(),
+              title: "Закрытие на следующий шаг",
+              summary: "Назначить конкретное действие",
+              tags: ["Закрытие"],
+              blocks: [
+                { id: crypto.randomUUID(), type: "highlight", text: "Чтобы не дергать вас лишний раз, когда удобнее вернуться к разговору: сегодня вечером, завтра или ближе к выходным?" },
+                { id: crypto.randomUUID(), type: "line", text: "Если появится объект, можете сразу скинуть мне объем в Telegram, быстро посчитаем." }
+              ]
+            },
+            {
+              id: crypto.randomUUID(),
+              title: "Закрытие на счет и договор",
+              summary: "Фиксация следующего шага по документам",
+              tags: ["Документы"],
+              blocks: [
+                { id: crypto.randomUUID(), type: "line", text: "Тогда я подготовлю счет и пришлю его сегодня. Если все устроит, согласуем договор и двинемся дальше." }
+              ]
+            }
+          ]
+        }
+      ],
+      quickGroups: [
+        {
+          id: crypto.randomUUID(),
+          title: "Вопросы клиента",
+          items: [
+            { id: crypto.randomUUID(), title: "Сколько стоит?", text: "Сразу посчитаю по вашему объему. Если пришлете размеры или спецификацию, дам точную цену и пару вариантов по бюджету." },
+            { id: crypto.randomUUID(), title: "Какие гарантии?", text: "Гарантия зависит от конкретного материала и производителя. Под ваш объект подберу вариант с понятными условиями и документами." },
+            { id: crypto.randomUUID(), title: "Про доставку", text: "Сориентирую по сроку и стоимости доставки после адреса и состава заказа. Если срочно, сразу посмотрю ближайшее окно." },
+            { id: crypto.randomUUID(), title: "Про рассрочку", text: "Подскажу доступные варианты после понимания объема и формы сделки. Если нужно, обсудим это отдельным шагом после расчета." }
+          ]
+        },
+        {
+          id: crypto.randomUUID(),
+          title: "Возражения клиента",
+          items: [
+            { id: crypto.randomUUID(), title: "Дорого", text: "Понимаю. Давайте покажу варианты в двух бюджетах и отдельно отмечу, где экономия безопасна, а где лучше не резать качество." },
+            { id: crypto.randomUUID(), title: "Уже есть поставщик", text: "Это нормально. Не предлагаю ломать текущую схему, хочу стать для вас запасным вариантом, когда нужна скорость, цена или редкая позиция." },
+            { id: crypto.randomUUID(), title: "Пришлите КП", text: "Сделаю. Чтобы КП было не формальным, уточню пару вещей: какой материал, какой объем и когда нужен?" },
+            { id: crypto.randomUUID(), title: "Надо подумать", text: "Хорошо. Чтобы не терять друг друга, когда вам удобно вернуться к этому вопросу?" },
+            { id: crypto.randomUUID(), title: "Объектов пока нет", text: "Понял. Тогда как появится заявка, можете сразу скинуть мне запрос. А я ближе к сезону аккуратно напомню о себе." },
+            { id: crypto.randomUUID(), title: "Неудобно говорить", text: "Понял. Подскажите, когда вам лучше перезвонить: сегодня позже или завтра?" }
+          ]
+        },
+        {
+          id: crypto.randomUUID(),
+          title: "Ответы клиента",
+          items: [
+            { id: crypto.randomUUID(), title: "Планирует работать", text: "Отлично. Что из ближайшего планируется и в какие сроки может понадобиться материал?" },
+            { id: crypto.randomUUID(), title: "Я сам позвоню", text: "Хорошо. Тогда зафиксируем ориентир, когда лучше напомнить о себе, если вопрос останется открытым." }
+          ]
+        }
+      ]
+    };
+
+    const state = {
+      data: loadData(),
+      editMode: false,
+      activeSectionId: null,
+      activeScriptId: null,
+      centerMode: "script",
+      activeQuickResponseId: null,
+      selectedModalQuickItemId: null,
+      search: ""
+    };
+
+    let pendingLinkSelection = null;
+
+    const els = {
+      sidebar: document.getElementById("sidebar"),
+      sidebarStatus: document.getElementById("sidebarStatus"),
+      contentHeader: document.getElementById("contentHeader"),
+      contentToolbar: document.getElementById("contentToolbar"),
+      content: document.getElementById("content"),
+      contentStatus: document.getElementById("contentStatus"),
+      quickPanel: document.getElementById("quickPanel"),
+      quickStatus: document.getElementById("quickStatus"),
+      toggleEditBtn: document.getElementById("toggleEditBtn"),
+      addSectionBtn: document.getElementById("addSectionBtn"),
+      addScriptBtn: document.getElementById("addScriptBtn"),
+      addBlockBtn: document.getElementById("addBlockBtn"),
+      exportBtn: document.getElementById("exportBtn"),
+      importBtn: document.getElementById("importBtn"),
+      importInput: document.getElementById("importInput"),
+      resetBtn: document.getElementById("resetBtn"),
+      searchInput: document.getElementById("searchInput"),
+      linkModal: document.getElementById("linkModal"),
+      closeLinkModalBtn: document.getElementById("closeLinkModalBtn"),
+      linkModalList: document.getElementById("linkModalList"),
+      attachSelectedLinkBtn: document.getElementById("attachSelectedLinkBtn"),
+      newQuickGroupSelect: document.getElementById("newQuickGroupSelect"),
+      newQuickTitleInput: document.getElementById("newQuickTitleInput"),
+      newQuickTextInput: document.getElementById("newQuickTextInput"),
+      createQuickFromModalBtn: document.getElementById("createQuickFromModalBtn")
+      ,
+      selectionPopover: document.getElementById("selectionPopover"),
+      selectionPopoverLinkBtn: document.getElementById("selectionPopoverLinkBtn")
+    };
+
+    initSelection();
+    bindEvents();
+    render();
+
+    function loadData() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return normalizeData(structuredClone(starterData));
+        const parsed = JSON.parse(raw);
+        if (!parsed || !Array.isArray(parsed.sections) || !Array.isArray(parsed.quickGroups)) {
+          return normalizeData(structuredClone(starterData));
+        }
+        if (!parsed.sections.length && !parsed.quickGroups.length) {
+          return normalizeData(structuredClone(starterData));
+        }
+        return normalizeData(parsed);
+      } catch {
+        return normalizeData(structuredClone(starterData));
+      }
+    }
+
+    function saveData(message = "Изменения сохранены локально") {
+      state.data.meta.updatedAt = new Date().toISOString();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.data));
+      els.contentStatus.textContent = message;
+      els.quickStatus.textContent = "Автосохранение включено";
+    }
+
+    function initSelection() {
+      const firstSection = state.data.sections[0];
+      state.activeSectionId = firstSection?.id ?? null;
+      state.activeScriptId = firstSection?.scripts[0]?.id ?? null;
+      state.centerMode = "script";
+      state.activeQuickResponseId = null;
+    }
+
+    function bindEvents() {
+      els.toggleEditBtn.addEventListener("click", () => {
+        state.editMode = !state.editMode;
+        render();
+      });
+
+      els.closeLinkModalBtn.addEventListener("click", closeLinkModal);
+      els.linkModal.addEventListener("click", (event) => {
+        if (event.target === els.linkModal) closeLinkModal();
+      });
+      els.selectionPopoverLinkBtn.addEventListener("mousedown", (event) => {
+        event.preventDefault();
+        openLinkModal();
+      });
+      els.attachSelectedLinkBtn.addEventListener("click", () => {
+        if (!state.selectedModalQuickItemId) {
+          els.contentStatus.textContent = "Выберите быстрый ответ в окне привязки";
+          return;
+        }
+        attachQuickLink(state.selectedModalQuickItemId);
+        closeLinkModal();
+      });
+      els.createQuickFromModalBtn.addEventListener("click", createQuickResponseFromModal);
+      document.addEventListener("mousedown", handleGlobalPointerDown);
+      document.addEventListener("selectionchange", handleSelectionChange);
+
+      els.addSectionBtn.addEventListener("click", () => {
+        const section = {
+          id: crypto.randomUUID(),
+          title: "Новый этап",
+          note: "Краткая цель этапа",
+          scripts: [{
+            id: crypto.randomUUID(),
+            title: "Новый сценарий",
+            summary: "Описание сценария",
+            tags: ["Новый"],
+            blocks: [{ id: crypto.randomUUID(), type: "line", text: "Введите первую реплику менеджера" }]
+          }]
+        };
+        state.data.sections.push(section);
+        state.activeSectionId = section.id;
+        state.activeScriptId = section.scripts[0].id;
+        saveData("Новый этап добавлен");
+        render();
+      });
+
+      els.addScriptBtn.addEventListener("click", () => {
+        const section = getActiveSection();
+        if (!section) return;
+        const script = {
+          id: crypto.randomUUID(),
+          title: "Новый сценарий",
+          summary: "Описание сценария",
+          tags: ["Черновик"],
+          blocks: [{ id: crypto.randomUUID(), type: "line", text: "Новая реплика" }]
+        };
+        section.scripts.push(script);
+        state.activeScriptId = script.id;
+        saveData("Новый сценарий добавлен");
+        render();
+      });
+
+      els.addBlockBtn.addEventListener("click", () => {
+        const script = getActiveScript();
+        if (!script) return;
+        script.blocks.push({ id: crypto.randomUUID(), type: "line", text: "Новая реплика" });
+        saveData("Новая реплика добавлена");
+        render();
+      });
+
+      els.exportBtn.addEventListener("click", exportData);
+      els.importBtn.addEventListener("click", () => els.importInput.click());
+      els.importInput.addEventListener("change", importData);
+
+      els.resetBtn.addEventListener("click", () => {
+        state.data = structuredClone(starterData);
+        initSelection();
+        saveData("Демо-данные восстановлены");
+        render();
+      });
+
+      els.searchInput.addEventListener("input", (event) => {
+        state.search = event.target.value.trim().toLowerCase();
+        renderSidebar();
+      });
+    }
+
+    function render() {
+      hideSelectionPopover();
+      document.body.classList.toggle("edit-mode", state.editMode);
+      els.toggleEditBtn.textContent = state.editMode ? "Просмотр" : "Редактировать";
+      renderSidebar();
+      renderContent();
+      renderQuickPanel();
+    }
+
+    function renderSidebar() {
+      const filter = state.search;
+      const parts = [];
+      let visibleScripts = 0;
+
+      state.data.sections.forEach((section) => {
+        const scripts = section.scripts.filter((script) => !filter || scriptMatches(script, filter));
+        if (!scripts.length && filter) return;
+        visibleScripts += scripts.length;
+
+        parts.push(`
+          <section class="section-group">
+            <div class="section-header">
+              <div>
+                <h3 class="section-title editable" ${editableAttr("section", section.id, "title")}>${escapeHtml(section.title)}</h3>
+                <p class="section-subtitle editable" ${editableAttr("section", section.id, "note")}>${escapeHtml(section.note || "Добавьте описание этапа")}</p>
+              </div>
+            </div>
+            <div class="section-card">
+              <div class="script-list">
+                ${scripts.map((script) => `
+                  <button class="script-item ${script.id === state.activeScriptId ? "active" : ""}" data-script-id="${script.id}" data-section-id="${section.id}">
+                    ${escapeHtml(script.title)}
+                  </button>
+                `).join("")}
+              </div>
+              ${state.editMode ? `
+                <div class="section-item-actions">
+                  <button class="icon-btn" data-action="add-script" data-section-id="${section.id}">+ Сценарий</button>
+                  <button class="icon-btn icon-btn-danger" data-action="delete-section" data-section-id="${section.id}">Удалить этап</button>
+                </div>
+              ` : ""}
+            </div>
+          </section>
+        `);
+      });
+
+      els.sidebar.innerHTML = parts.join("") || '<div class="empty-state">По фильтру ничего не найдено</div>';
+      els.sidebarStatus.textContent = `Этапов: ${state.data.sections.length} • Сценариев в выдаче: ${visibleScripts}`;
+
+      els.sidebar.querySelectorAll("[data-script-id]").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.centerMode = "script";
+          state.activeSectionId = button.dataset.sectionId;
+          state.activeScriptId = button.dataset.scriptId;
+          render();
+        });
+      });
+
+      bindEditable(els.sidebar);
+      bindSidebarActions();
+    }
+
+    function renderContent() {
+      if (state.centerMode === "quick" && state.activeQuickResponseId) {
+        renderQuickContent();
+        return;
+      }
+
+      const section = getActiveSection();
+      const script = getActiveScript();
+
+      if (!section || !script) {
+        els.contentHeader.innerHTML = "<h2>Сценарий не выбран</h2>";
+        els.content.innerHTML = '<div class="empty-state">Добавьте первый сценарий, чтобы начать работу</div>';
+        els.contentToolbar.innerHTML = "";
+        els.contentStatus.textContent = "Нет активного сценария";
+        return;
+      }
+
+      els.contentHeader.innerHTML = `
+        <h2 class="editable" ${editableAttr("script", script.id, "title")}>${escapeHtml(script.title)}</h2>
+        <p class="editable" ${editableAttr("script", script.id, "summary")}>${escapeHtml(script.summary || "Краткое описание сценария")}</p>
+        <div class="script-meta">
+          ${script.tags.map((tag) => `<span class="meta-pill">${escapeHtml(tag)}</span>`).join("")}
+        </div>
+      `;
+
+      els.contentToolbar.innerHTML = state.editMode ? `
+        <button class="btn btn-soft" data-content-action="add-line">+ Реплика</button>
+        <button class="btn btn-soft" data-content-action="add-note">+ Подсказка</button>
+        <button class="btn btn-soft" data-content-action="add-highlight">+ Акцент</button>
+        <button class="btn btn-soft" data-content-action="open-link-modal">Добавить ссылку</button>
+        <button class="btn btn-danger" data-content-action="delete-script">Удалить сценарий</button>
+      ` : "";
+
+      if (state.editMode) {
+        els.contentToolbar.insertAdjacentHTML("beforeend", '<div class="toolbar-note">Выделите слово или фразу в центре и нажмите "Добавить ссылку".</div>');
+      }
+
+      const blocksHtml = script.blocks.length ? script.blocks.map((block, index) => `
+        <article class="body-block ${blockClass(block.type)}" data-block-drop-zone="${block.id}">
+          <div class="body-block-row">
+            ${state.editMode ? `<button class="drag-handle" draggable="true" data-draggable-block="${block.id}" title="Перетащить блок" aria-label="Перетащить блок"></button>` : ""}
+            <p class="editable" ${editableAttr("block", block.id, "html")}>${renderBlockHtml(block)}</p>
+          </div>
+          ${state.editMode ? `
+            <div class="item-actions">
+              <button class="icon-btn" data-action="add-line-below" data-block-id="${block.id}">+ Реплика</button>
+              <button class="icon-btn" data-action="move-block-up" data-block-id="${block.id}" ${index === 0 ? "disabled" : ""}>↑</button>
+              <button class="icon-btn" data-action="move-block-down" data-block-id="${block.id}" ${index === script.blocks.length - 1 ? "disabled" : ""}>↓</button>
+              <button class="icon-btn" data-action="toggle-block-type" data-block-id="${block.id}">Сменить тип</button>
+              <button class="icon-btn icon-btn-danger" data-action="delete-block" data-block-id="${block.id}">Удалить</button>
+            </div>
+          ` : ""}
+        </article>
+      `).join("") : '<div class="empty-state">В сценарии пока нет реплик</div>';
+
+      els.content.innerHTML = `
+        <div class="card">
+          <div class="script-title-row">
+            <div>
+              <h1 class="script-title editable" ${editableAttr("script", script.id, "title")}>${escapeHtml(script.title)}</h1>
+              <div class="script-note">Этап: ${escapeHtml(section.title)}</div>
+            </div>
+          </div>
+          ${blocksHtml}
+        </div>
+      `;
+
+      els.contentStatus.textContent = `Активный сценарий: ${script.title} • Обновлено: ${formatDate(state.data.meta.updatedAt)}`;
+
+      bindEditable(els.contentHeader);
+      bindEditable(els.content);
+      bindContentActions();
+      bindContentInteractions();
+    }
+
+    function renderQuickContent() {
+      const quickItem = findQuickItem(state.activeQuickResponseId);
+      if (!quickItem) {
+        state.centerMode = "script";
+        state.activeQuickResponseId = null;
+        renderContent();
+        return;
+      }
+
+      const group = findQuickGroupByItemId(quickItem.id);
+      const quickBlocks = getQuickBlocks(quickItem);
+      const blocksHtml = quickBlocks.length ? quickBlocks.map((block) => `
+        <article class="body-block ${blockClass(block.type)}">
+          <div class="body-block-row">
+            <p class="editable" ${editableAttr("quick-block", block.id, "html")}>${renderBlockHtml(block)}</p>
+          </div>
+          ${state.editMode ? `
+            <div class="item-actions">
+              <button class="icon-btn" data-action="add-quick-line-below" data-block-id="${block.id}">+ Реплика</button>
+              <button class="icon-btn" data-action="toggle-quick-block-type" data-block-id="${block.id}">Сменить тип</button>
+              <button class="icon-btn icon-btn-danger" data-action="delete-quick-block" data-block-id="${block.id}">Удалить</button>
+            </div>
+          ` : ""}
+        </article>
+      `).join("") : '<div class="empty-state">В быстром ответе пока нет реплик</div>';
+      els.contentHeader.innerHTML = `
+        <h2 class="editable" ${editableAttr("quick-item", quickItem.id, "title")}>${escapeHtml(quickItem.title)}</h2>
+        <p>${escapeHtml(group?.title || "Быстрый ответ")}</p>
+      `;
+
+      els.contentToolbar.innerHTML = `
+        <button class="btn" data-content-action="show-script-view">Вернуться к сценарию</button>
+        ${state.editMode ? '<button class="btn btn-soft" data-content-action="open-link-modal">Добавить ссылку</button>' : ""}
+      `;
+
+      if (state.editMode) {
+        els.contentToolbar.insertAdjacentHTML("beforeend", '<div class="toolbar-note">Быстрый ответ редактируется так же: откройте его в центре, выделите текст и добавьте ссылку на другой быстрый ответ.</div>');
+      }
+
+      els.content.innerHTML = `
+        <div class="card quick-response-card">
+          <p class="quick-response-label">Быстрый ответ</p>
+          <div class="script-title-row">
+            <div>
+              <h1 class="script-title editable" ${editableAttr("quick-item", quickItem.id, "title")}>${escapeHtml(quickItem.title)}</h1>
+              <div class="script-note">Категория: ${escapeHtml(group?.title || "Без категории")}</div>
+            </div>
+          </div>
+          ${blocksHtml}
+        </div>
+      `;
+
+      els.contentStatus.textContent = `Быстрый ответ: ${quickItem.title} • Обновлено: ${formatDate(state.data.meta.updatedAt)}`;
+
+      bindEditable(els.contentHeader);
+      bindEditable(els.content);
+      bindContentActions();
+      bindContentInteractions();
+    }
+
+    function renderQuickPanel() {
+      const html = state.data.quickGroups.map((group) => `
+        <section class="quick-group card">
+          <h4 class="editable" ${editableAttr("group", group.id, "title")}>${escapeHtml(group.title)}</h4>
+          <div class="quick-group-list">
+            ${group.items.map((item) => `
+              <article class="quick-item ${item.id === state.activeQuickResponseId ? "is-active" : ""}">
+                <button class="quick-item-button" data-action="preview-quick-item" data-item-id="${item.id}">
+                  <span class="quick-item-title editable" ${editableAttr("quick-item", item.id, "title")}>${escapeHtml(item.title)}</span>
+                </button>
+                ${state.editMode ? `
+                  <div class="item-actions">
+                    <button class="icon-btn" data-action="preview-quick-item" data-item-id="${item.id}">Открыть</button>
+                    <button class="icon-btn" data-action="link-selection" data-item-id="${item.id}">Привязать</button>
+                    <button class="icon-btn" data-action="add-quick-item" data-group-id="${group.id}">+ Пункт</button>
+                    <button class="icon-btn icon-btn-danger" data-action="delete-quick-item" data-item-id="${item.id}">Удалить</button>
+                  </div>
+                ` : ""}
+              </article>
+            `).join("")}
+          </div>
+          ${state.editMode ? `
+            <div class="side-actions">
+              <button class="icon-btn" data-action="add-quick-item" data-group-id="${group.id}">+ Пункт</button>
+              <button class="icon-btn icon-btn-danger" data-action="delete-group" data-group-id="${group.id}">Удалить категорию</button>
+            </div>
+          ` : ""}
+        </section>
+      `).join("");
+
+      els.quickPanel.innerHTML = `
+        <div class="quick-grid">
+          ${html}
+          ${state.editMode ? '<button class="btn btn-soft" data-action="add-group">+ Новая категория</button>' : ""}
+        </div>
+      `;
+
+      els.quickStatus.textContent = `Быстрых категорий: ${state.data.quickGroups.length}`;
+
+      bindEditable(els.quickPanel);
+      bindQuickActions();
+    }
+
+    function bindEditable(root) {
+      if (!state.editMode) return;
+      root.querySelectorAll(".editable").forEach((node) => {
+        node.contentEditable = node.dataset.field === "html" ? "true" : "plaintext-only";
+        node.spellcheck = false;
+        node.addEventListener("input", handleEditableInput);
+        node.addEventListener("blur", handleEditableBlur);
+        node.addEventListener("keydown", handleEditableKeydown);
+      });
+    }
+
+    function handleEditableInput(event) {
+      const node = event.currentTarget;
+      const value = node.dataset.field === "html" ? sanitizeRichHtml(node.innerHTML) : node.textContent.trim();
+      updateEntity(node.dataset.kind, node.dataset.id, node.dataset.field, value, { render: false, message: "Автосохранение после редактирования" });
+    }
+
+    function handleEditableBlur(event) {
+      const node = event.currentTarget;
+      const value = node.dataset.field === "html" ? sanitizeRichHtml(node.innerHTML) : node.textContent.trim();
+      updateEntity(node.dataset.kind, node.dataset.id, node.dataset.field, value);
+    }
+
+    function handleEditableKeydown(event) {
+      if (event.currentTarget.dataset.field === "html") return;
+      if (event.key === "Enter" && event.currentTarget.tagName !== "P") {
+        event.preventDefault();
+        event.currentTarget.blur();
+      }
+    }
+
+    function bindSidebarActions() {
+      els.sidebar.querySelectorAll("[data-action='add-script']").forEach((button) => {
+        button.addEventListener("click", () => {
+          const section = findSection(button.dataset.sectionId);
+          if (!section) return;
+          const script = {
+            id: crypto.randomUUID(),
+            title: "Новый сценарий",
+            summary: "Описание сценария",
+            tags: ["Черновик"],
+            blocks: [{ id: crypto.randomUUID(), type: "line", text: "Новая реплика" }]
+          };
+          section.scripts.push(script);
+          state.activeSectionId = section.id;
+          state.activeScriptId = script.id;
+          saveData("Сценарий добавлен в этап");
+          render();
+        });
+      });
+
+      els.sidebar.querySelectorAll("[data-action='delete-section']").forEach((button) => {
+        button.addEventListener("click", () => {
+          const index = state.data.sections.findIndex((section) => section.id === button.dataset.sectionId);
+          if (index === -1) return;
+          state.data.sections.splice(index, 1);
+          if (!state.data.sections.length) {
+            state.activeSectionId = null;
+            state.activeScriptId = null;
+          } else {
+            state.activeSectionId = state.data.sections[0].id;
+            state.activeScriptId = state.data.sections[0].scripts[0]?.id ?? null;
+          }
+          saveData("Этап удален");
+          render();
+        });
+      });
+    }
+
+    function bindContentActions() {
+      els.contentToolbar.querySelectorAll("[data-content-action='open-link-modal']").forEach((button) => {
+        button.addEventListener("mousedown", (event) => {
+          event.preventDefault();
+          captureActiveSelection();
+          openLinkModal();
+        });
+      });
+      els.contentToolbar.querySelectorAll("[data-content-action='add-line']").forEach((button) => {
+        button.addEventListener("click", () => addBlock("line"));
+      });
+      els.contentToolbar.querySelectorAll("[data-content-action='show-script-view']").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.centerMode = "script";
+          renderContent();
+          renderQuickPanel();
+        });
+      });
+      els.contentToolbar.querySelectorAll("[data-content-action='add-note']").forEach((button) => {
+        button.addEventListener("click", () => addBlock("note"));
+      });
+      els.contentToolbar.querySelectorAll("[data-content-action='add-highlight']").forEach((button) => {
+        button.addEventListener("click", () => addBlock("highlight"));
+      });
+      els.contentToolbar.querySelectorAll("[data-content-action='delete-script']").forEach((button) => {
+        button.addEventListener("click", () => {
+          const section = getActiveSection();
+          if (!section) return;
+          const index = section.scripts.findIndex((script) => script.id === state.activeScriptId);
+          if (index === -1) return;
+          section.scripts.splice(index, 1);
+          const nextSection = state.data.sections.find((item) => item.scripts.length);
+          state.activeSectionId = nextSection?.id ?? null;
+          state.activeScriptId = nextSection?.scripts[0]?.id ?? null;
+          saveData("Сценарий удален");
+          render();
+        });
+      });
+
+      els.content.querySelectorAll("[data-action='move-block-up']").forEach((button) => {
+        button.addEventListener("click", () => moveBlock(button.dataset.blockId, -1));
+      });
+      els.content.querySelectorAll("[data-action='add-line-below']").forEach((button) => {
+        button.addEventListener("click", () => addBlockBelow(button.dataset.blockId, "line"));
+      });
+      els.content.querySelectorAll("[data-action='add-quick-line-below']").forEach((button) => {
+        button.addEventListener("click", () => addQuickBlockBelow(button.dataset.blockId, "line"));
+      });
+      els.content.querySelectorAll("[data-action='move-block-down']").forEach((button) => {
+        button.addEventListener("click", () => moveBlock(button.dataset.blockId, 1));
+      });
+      els.content.querySelectorAll("[data-action='toggle-block-type']").forEach((button) => {
+        button.addEventListener("click", () => toggleBlockType(button.dataset.blockId));
+      });
+      els.content.querySelectorAll("[data-action='toggle-quick-block-type']").forEach((button) => {
+        button.addEventListener("click", () => toggleQuickBlockType(button.dataset.blockId));
+      });
+      els.content.querySelectorAll("[data-action='delete-block']").forEach((button) => {
+        button.addEventListener("click", () => {
+          const script = getActiveScript();
+          if (!script) return;
+          script.blocks = script.blocks.filter((block) => block.id !== button.dataset.blockId);
+          saveData("Реплика удалена");
+          render();
+        });
+      });
+      els.content.querySelectorAll("[data-action='delete-quick-block']").forEach((button) => {
+        button.addEventListener("click", () => {
+          deleteQuickBlock(button.dataset.blockId);
+        });
+      });
+
+      bindBlockDragAndDrop();
+    }
+
+    function bindBlockDragAndDrop() {
+      const script = getActiveScript();
+      if (!state.editMode || !script) return;
+
+      els.content.querySelectorAll("[data-draggable-block]").forEach((handle) => {
+        handle.addEventListener("dragstart", (event) => {
+          event.dataTransfer.effectAllowed = "move";
+          event.dataTransfer.setData("text/plain", handle.dataset.draggableBlock);
+          handle.closest(".body-block")?.classList.add("is-dragging");
+        });
+      });
+
+      els.content.querySelectorAll("[data-block-drop-zone]").forEach((block) => {
+        block.addEventListener("dragover", (event) => {
+          event.preventDefault();
+          const draggingId = event.dataTransfer.getData("text/plain");
+          if (!draggingId || draggingId === block.dataset.blockDropZone) return;
+          block.classList.add("is-drop-target");
+        });
+
+        block.addEventListener("dragleave", () => {
+          block.classList.remove("is-drop-target");
+        });
+
+        block.addEventListener("drop", (event) => {
+          event.preventDefault();
+          const draggingId = event.dataTransfer.getData("text/plain");
+          const targetId = block.dataset.blockDropZone;
+          clearDragClasses();
+          if (!draggingId || !targetId || draggingId === targetId) return;
+          reorderBlocksByDrop(draggingId, targetId);
+        });
+      });
+
+      els.content.querySelectorAll("[data-draggable-block]").forEach((handle) => {
+        handle.addEventListener("dragend", () => {
+          clearDragClasses();
+        });
+      });
+    }
+
+    function clearDragClasses() {
+      els.content.querySelectorAll(".body-block").forEach((node) => {
+        node.classList.remove("is-dragging", "is-drop-target");
+      });
+    }
+
+    function reorderBlocksByDrop(draggingId, targetId) {
+      const script = getActiveScript();
+      if (!script) return;
+
+      const fromIndex = script.blocks.findIndex((block) => block.id === draggingId);
+      const toIndex = script.blocks.findIndex((block) => block.id === targetId);
+      if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) return;
+
+      const [moved] = script.blocks.splice(fromIndex, 1);
+      script.blocks.splice(toIndex, 0, moved);
+      saveData("Порядок реплик обновлен");
+      render();
+    }
+
+    function bindContentInteractions() {
+      els.content.querySelectorAll("[data-field='html']").forEach((node) => {
+        node.addEventListener("mouseup", () => rememberLinkSelection(node));
+        node.addEventListener("keyup", () => rememberLinkSelection(node));
+        node.addEventListener("focus", () => rememberLinkSelection(node));
+      });
+
+      els.content.querySelectorAll("[data-quick-item-id]").forEach((link) => {
+        link.addEventListener("click", (event) => {
+          if (state.editMode) return;
+          event.preventDefault();
+          state.centerMode = "quick";
+          state.activeQuickResponseId = link.dataset.quickItemId;
+          renderContent();
+          renderQuickPanel();
+        });
+      });
+    }
+
+    function bindQuickActions() {
+      els.quickPanel.querySelectorAll("[data-action='add-group']").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.data.quickGroups.push({
+            id: crypto.randomUUID(),
+            title: "Новая категория",
+            items: [{ id: crypto.randomUUID(), title: "Новый пункт", text: "Введите быстрый ответ", blocks: [{ id: crypto.randomUUID(), type: "line", text: "Введите быстрый ответ" }] }]
+          });
+          saveData("Категория добавлена");
+          render();
+        });
+      });
+
+      els.quickPanel.querySelectorAll("[data-action='delete-group']").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.data.quickGroups = state.data.quickGroups.filter((group) => group.id !== button.dataset.groupId);
+          if (!findQuickItem(state.activeQuickResponseId)) state.activeQuickResponseId = null;
+          saveData("Категория удалена");
+          render();
+        });
+      });
+
+      els.quickPanel.querySelectorAll("[data-action='preview-quick-item']").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.centerMode = "quick";
+          state.activeQuickResponseId = button.dataset.itemId;
+          els.contentStatus.textContent = "Быстрый ответ показан в центре";
+          renderContent();
+          renderQuickPanel();
+        });
+      });
+
+      els.quickPanel.querySelectorAll("[data-action='link-selection']").forEach((button) => {
+        button.addEventListener("mousedown", (event) => {
+          event.preventDefault();
+          captureActiveSelection();
+          openLinkModal();
+        });
+      });
+
+      els.quickPanel.querySelectorAll("[data-action='add-quick-item']").forEach((button) => {
+        button.addEventListener("click", () => {
+          const group = state.data.quickGroups.find((item) => item.id === button.dataset.groupId);
+          if (!group) return;
+          group.items.push({ id: crypto.randomUUID(), title: "Новый пункт", text: "Введите быстрый ответ", blocks: [{ id: crypto.randomUUID(), type: "line", text: "Введите быстрый ответ" }] });
+          saveData("Пункт добавлен");
+          render();
+        });
+      });
+
+      els.quickPanel.querySelectorAll("[data-action='delete-quick-item']").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.data.quickGroups.forEach((group) => {
+            group.items = group.items.filter((item) => item.id !== button.dataset.itemId);
+          });
+          removeDeletedQuickLinks(button.dataset.itemId);
+          if (state.activeQuickResponseId === button.dataset.itemId) state.activeQuickResponseId = null;
+          saveData("Пункт удален");
+          render();
+        });
+      });
+    }
+
+    function rememberLinkSelection(node) {
+      const selection = window.getSelection();
+      if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
+        pendingLinkSelection = null;
+        hideSelectionPopover();
+        return;
+      }
+
+      const range = selection.getRangeAt(0);
+      if (!node.contains(range.commonAncestorContainer)) {
+        pendingLinkSelection = null;
+        hideSelectionPopover();
+        return;
+      }
+
+      const offsets = getSelectionOffsets(node, range);
+      if (!offsets || offsets.start === offsets.end) {
+        pendingLinkSelection = null;
+        hideSelectionPopover();
+        return;
+      }
+
+      pendingLinkSelection = {
+        kind: node.dataset.kind,
+        targetId: node.dataset.id,
+        start: offsets.start,
+        end: offsets.end,
+        text: range.toString()
+      };
+
+      showSelectionPopover(range);
+    }
+
+    function captureActiveSelection() {
+      const activeEditable = document.activeElement?.closest?.("[data-field='html']");
+      if (activeEditable) rememberLinkSelection(activeEditable);
+    }
+
+    function handleSelectionChange() {
+      if (!state.editMode) {
+        hideSelectionPopover();
+        return;
+      }
+
+      const activeEditable = document.activeElement?.closest?.("[data-field='html']");
+      if (!activeEditable) return;
+      rememberLinkSelection(activeEditable);
+    }
+
+    function handleGlobalPointerDown(event) {
+      if (els.selectionPopover.contains(event.target)) return;
+      if (els.linkModal.contains(event.target)) return;
+      if (event.target.closest?.("[data-field='html']")) return;
+      hideSelectionPopover();
+    }
+
+    function showSelectionPopover(range) {
+      if (!state.editMode) return;
+      const rect = range.getBoundingClientRect();
+      if (!rect || (!rect.width && !rect.height)) return;
+
+      const top = Math.max(8, rect.top + window.scrollY - 38);
+      const left = Math.max(8, rect.left + window.scrollX);
+      els.selectionPopover.style.top = `${top}px`;
+      els.selectionPopover.style.left = `${left}px`;
+      els.selectionPopover.classList.remove("hidden");
+    }
+
+    function hideSelectionPopover() {
+      els.selectionPopover.classList.add("hidden");
+    }
+
+    function getSelectionOffsets(root, range) {
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      let current;
+      let offset = 0;
+      let start = null;
+      let end = null;
+
+      while ((current = walker.nextNode())) {
+        const length = current.textContent.length;
+        if (current === range.startContainer) start = offset + range.startOffset;
+        if (current === range.endContainer) end = offset + range.endOffset;
+        offset += length;
+      }
+
+      if (start === null || end === null) return null;
+      return { start, end };
+    }
+
+    function createRangeFromOffsets(root, start, end) {
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      let current;
+      let offset = 0;
+      let startNode = null;
+      let endNode = null;
+      let startOffset = 0;
+      let endOffset = 0;
+
+      while ((current = walker.nextNode())) {
+        const length = current.textContent.length;
+        if (!startNode && start >= offset && start <= offset + length) {
+          startNode = current;
+          startOffset = start - offset;
+        }
+        if (!endNode && end >= offset && end <= offset + length) {
+          endNode = current;
+          endOffset = end - offset;
+          break;
+        }
+        offset += length;
+      }
+
+      if (!startNode || !endNode) return null;
+
+      const range = document.createRange();
+      range.setStart(startNode, startOffset);
+      range.setEnd(endNode, endOffset);
+      return range;
+    }
+
+    function attachQuickLink(itemId) {
+      const quickItem = findQuickItem(itemId);
+      if (!quickItem) return;
+      if (!pendingLinkSelection?.targetId || pendingLinkSelection.start === undefined || pendingLinkSelection.end === undefined) {
+        els.contentStatus.textContent = "Сначала выделите слово или фразу в центральном тексте";
+        return;
+      }
+
+      const target = pendingLinkSelection.kind === "quick-item"
+        ? findQuickItem(pendingLinkSelection.targetId)
+        : pendingLinkSelection.kind === "quick-block"
+          ? findQuickBlock(pendingLinkSelection.targetId)
+          : findBlock(pendingLinkSelection.targetId);
+      const targetNode = els.content.querySelector(`[data-kind="${pendingLinkSelection.kind}"][data-id="${pendingLinkSelection.targetId}"][data-field="html"]`);
+      if (!target || !targetNode) return;
+
+      const liveRange = createRangeFromOffsets(targetNode, pendingLinkSelection.start, pendingLinkSelection.end);
+      if (!liveRange) {
+        els.contentStatus.textContent = "Не удалось восстановить выделение для ссылки";
+        return;
+      }
+
+      const anchor = document.createElement("a");
+      anchor.href = "#";
+      anchor.className = "script-inline-link";
+      anchor.dataset.quickItemId = itemId;
+      anchor.textContent = pendingLinkSelection.text || liveRange.toString();
+
+      liveRange.deleteContents();
+      liveRange.insertNode(anchor);
+
+      target.html = sanitizeRichHtml(targetNode.innerHTML);
+      target.text = extractTextFromHtml(target.html);
+      if (pendingLinkSelection.kind === "quick-block") {
+        const quickItem = findQuickItemByBlockId(pendingLinkSelection.targetId);
+        if (quickItem) syncQuickItemText(quickItem);
+      }
+      state.activeQuickResponseId = itemId;
+      pendingLinkSelection = null;
+      hideSelectionPopover();
+      saveData(`Ссылка привязана к ответу "${quickItem.title}"`);
+      render();
+    }
+
+    function removeDeletedQuickLinks(itemId) {
+      state.data.sections.forEach((section) => {
+        section.scripts.forEach((script) => {
+          script.blocks.forEach((block) => {
+            const html = renderBlockHtml(block);
+            if (!html.includes(`data-quick-item-id="${itemId}"`)) return;
+            block.html = sanitizeRichHtml(html.split(`data-quick-item-id="${itemId}"`).join('data-quick-item-id=""'));
+            block.text = extractTextFromHtml(block.html);
+          });
+        });
+      });
+
+      state.data.quickGroups.forEach((group) => {
+        group.items.forEach((item) => {
+          const blocks = getQuickBlocks(item);
+          let changed = false;
+          blocks.forEach((block) => {
+            const html = renderBlockHtml(block);
+            if (!html.includes(`data-quick-item-id="${itemId}"`)) return;
+            block.html = sanitizeRichHtml(html.split(`data-quick-item-id="${itemId}"`).join('data-quick-item-id=""'));
+            block.text = extractTextFromHtml(block.html);
+            changed = true;
+          });
+          if (changed) syncQuickItemText(item);
+        });
+      });
+    }
+
+    function addBlock(type) {
+      const script = getActiveScript();
+      if (!script) return;
+      const defaults = {
+        line: "Новая реплика",
+        note: "Подсказка для менеджера",
+        highlight: "Ключевая фраза или вопрос"
+      };
+      script.blocks.push({
+        id: crypto.randomUUID(),
+        type,
+        text: defaults[type] || "Новая реплика"
+      });
+      saveData("Новый блок добавлен");
+      render();
+    }
+
+    function addBlockBelow(blockId, type) {
+      const script = getActiveScript();
+      if (!script) return;
+
+      const index = script.blocks.findIndex((block) => block.id === blockId);
+      if (index === -1) return;
+
+      const defaults = {
+        line: "Новая реплика",
+        note: "Подсказка для менеджера",
+        highlight: "Ключевая фраза или вопрос"
+      };
+
+      script.blocks.splice(index + 1, 0, {
+        id: crypto.randomUUID(),
+        type,
+        text: defaults[type] || "Новая реплика"
+      });
+
+      saveData("Реплика добавлена ниже");
+      render();
+    }
+
+    function addQuickBlockBelow(blockId, type) {
+      const quickItem = getActiveQuickItem();
+      if (!quickItem) return;
+
+      const blocks = getQuickBlocks(quickItem);
+      const index = blocks.findIndex((block) => block.id === blockId);
+      if (index === -1) return;
+
+      const defaults = {
+        line: "Новая реплика",
+        note: "Подсказка для менеджера",
+        highlight: "Ключевая фраза или вопрос"
+      };
+
+      blocks.splice(index + 1, 0, {
+        id: crypto.randomUUID(),
+        type,
+        text: defaults[type] || "Новая реплика"
+      });
+
+      syncQuickItemText(quickItem);
+      saveData("Реплика быстрого ответа добавлена ниже");
+      render();
+    }
+
+    function deleteQuickBlock(blockId) {
+      const quickItem = getActiveQuickItem();
+      if (!quickItem) return;
+
+      const blocks = getQuickBlocks(quickItem);
+      if (blocks.length <= 1) {
+        saveData("В быстром ответе должна остаться хотя бы одна реплика");
+        render();
+        return;
+      }
+
+      quickItem.blocks = blocks.filter((block) => block.id !== blockId);
+      syncQuickItemText(quickItem);
+      saveData("Реплика быстрого ответа удалена");
+      render();
+    }
+
+    function moveBlock(blockId, direction) {
+      const script = getActiveScript();
+      if (!script) return;
+      const index = script.blocks.findIndex((block) => block.id === blockId);
+      const next = index + direction;
+      if (index === -1 || next < 0 || next >= script.blocks.length) return;
+      const [block] = script.blocks.splice(index, 1);
+      script.blocks.splice(next, 0, block);
+      saveData("Порядок реплик обновлен");
+      render();
+    }
+
+    function toggleBlockType(blockId) {
+      const script = getActiveScript();
+      if (!script) return;
+      const block = script.blocks.find((item) => item.id === blockId);
+      if (!block) return;
+      const cycle = ["line", "note", "highlight"];
+      block.type = cycle[(cycle.indexOf(block.type) + 1) % cycle.length];
+      saveData("Тип блока изменен");
+      render();
+    }
+
+    function toggleQuickBlockType(blockId) {
+      const quickItem = getActiveQuickItem();
+      if (!quickItem) return;
+      const block = getQuickBlocks(quickItem).find((item) => item.id === blockId);
+      if (!block) return;
+      const cycle = ["line", "note", "highlight"];
+      block.type = cycle[(cycle.indexOf(block.type) + 1) % cycle.length];
+      syncQuickItemText(quickItem);
+      saveData("Тип реплики быстрого ответа изменен");
+      render();
+    }
+
+    function updateEntity(kind, id, field, value, options = {}) {
+      const { render: shouldRender = true, message = "Изменения сохранены" } = options;
+      const safeValue = value || defaultValue(kind, field);
+      let target = null;
+
+      if (kind === "section") target = findSection(id);
+      if (kind === "script") target = findScript(id);
+      if (kind === "block") target = findBlock(id);
+      if (kind === "quick-block") target = findQuickBlock(id);
+      if (kind === "group") target = state.data.quickGroups.find((group) => group.id === id);
+      if (kind === "quick-item") target = findQuickItem(id);
+
+      if (!target) return;
+      if ((kind === "block" || kind === "quick-item" || kind === "quick-block") && field === "html") {
+        target.html = sanitizeRichHtml(safeValue);
+        target.text = extractTextFromHtml(target.html) || defaultValue(kind, field);
+        if (kind === "quick-block") {
+          const quickItem = findQuickItemByBlockId(id);
+          if (quickItem) syncQuickItemText(quickItem);
+        }
+      } else if (kind === "quick-item" && field === "text") {
+        target.text = safeValue;
+        target.html = escapeHtml(safeValue).replace(/\n/g, "<br>");
+      } else {
+        target[field] = safeValue;
+      }
+      saveData(message);
+      if (shouldRender) render();
+    }
+
+    function exportData() {
+      const blob = new Blob([JSON.stringify(state.data, null, 2)], { type: "application/json" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `salescript-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+      els.contentStatus.textContent = "JSON выгружен";
+    }
+
+    function importData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(reader.result);
+          if (!parsed.sections || !parsed.quickGroups) throw new Error("bad");
+          state.data = normalizeData(parsed);
+          initSelection();
+          saveData("JSON импортирован");
+          render();
+        } catch {
+          els.contentStatus.textContent = "Не удалось импортировать JSON";
+        } finally {
+          event.target.value = "";
+        }
+      };
+      reader.readAsText(file, "utf-8");
+    }
+
+    function getActiveSection() {
+      return state.data.sections.find((section) => section.id === state.activeSectionId) || null;
+    }
+
+    function getActiveScript() {
+      const section = getActiveSection();
+      return section?.scripts.find((script) => script.id === state.activeScriptId) || null;
+    }
+
+    function getActiveQuickItem() {
+      return findQuickItem(state.activeQuickResponseId);
+    }
+
+    function findSection(id) {
+      return state.data.sections.find((section) => section.id === id) || null;
+    }
+
+    function findScript(id) {
+      for (const section of state.data.sections) {
+        const script = section.scripts.find((item) => item.id === id);
+        if (script) return script;
+      }
+      return null;
+    }
+
+    function findBlock(id) {
+      for (const section of state.data.sections) {
+        for (const script of section.scripts) {
+          const block = script.blocks.find((item) => item.id === id);
+          if (block) return block;
+        }
+      }
+      return null;
+    }
+
+    function findQuickItem(id) {
+      for (const group of state.data.quickGroups) {
+        const item = group.items.find((entry) => entry.id === id);
+        if (item) return item;
+      }
+      return null;
+    }
+
+    function findQuickBlock(id) {
+      for (const group of state.data.quickGroups) {
+        for (const item of group.items) {
+          const blocks = getQuickBlocks(item);
+          const block = blocks.find((entry) => entry.id === id);
+          if (block) return block;
+        }
+      }
+      return null;
+    }
+
+    function findQuickItemByBlockId(id) {
+      for (const group of state.data.quickGroups) {
+        for (const item of group.items) {
+          const blocks = getQuickBlocks(item);
+          if (blocks.some((entry) => entry.id === id)) return item;
+        }
+      }
+      return null;
+    }
+
+    function findQuickGroupByItemId(itemId) {
+      return state.data.quickGroups.find((group) => group.items.some((item) => item.id === itemId)) || null;
+    }
+
+    function openLinkModal() {
+      captureActiveSelection();
+      if (!pendingLinkSelection?.targetId || pendingLinkSelection.start === undefined || pendingLinkSelection.end === undefined || pendingLinkSelection.start === pendingLinkSelection.end) {
+        els.contentStatus.textContent = "Сначала выделите текст в центральном окне";
+        return;
+      }
+
+      state.selectedModalQuickItemId = null;
+      renderLinkModal();
+      hideSelectionPopover();
+      els.linkModal.classList.remove("hidden");
+    }
+
+    function closeLinkModal() {
+      state.selectedModalQuickItemId = null;
+      els.linkModal.classList.add("hidden");
+    }
+
+    function renderLinkModal() {
+      els.newQuickGroupSelect.innerHTML = state.data.quickGroups.map((group) => `
+        <option value="${group.id}">${escapeHtml(group.title)}</option>
+      `).join("");
+
+      const allItems = state.data.quickGroups.flatMap((group) =>
+        group.items.map((item) => ({ groupTitle: group.title, item }))
+      );
+
+      els.linkModalList.innerHTML = allItems.map(({ groupTitle, item }) => `
+        <button class="modal-option ${item.id === state.selectedModalQuickItemId ? "is-active" : ""}" data-modal-action="choose-link" data-item-id="${item.id}">
+          <strong>${escapeHtml(item.title)}</strong>
+          <span>${escapeHtml(groupTitle)}</span>
+          <span>${escapeHtml((item.text || "").slice(0, 120) || "Без текста")}</span>
+        </button>
+      `).join("") || '<div class="empty-state">Пока нет быстрых ответов. Создайте первый ниже.</div>';
+
+      els.linkModalList.querySelectorAll("[data-modal-action='choose-link']").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.selectedModalQuickItemId = button.dataset.itemId;
+          renderLinkModal();
+        });
+      });
+
+      els.attachSelectedLinkBtn.disabled = !state.selectedModalQuickItemId;
+    }
+
+    function createQuickResponseFromModal() {
+      const groupId = els.newQuickGroupSelect.value;
+      const title = els.newQuickTitleInput.value.trim() || "Новый быстрый ответ";
+      const text = els.newQuickTextInput.value.trim() || "Введите текст быстрого ответа";
+      const group = state.data.quickGroups.find((item) => item.id === groupId) || state.data.quickGroups[0];
+
+      if (!group) {
+        els.contentStatus.textContent = "Сначала создайте категорию быстрых ответов";
+        return;
+      }
+
+      const quickItem = {
+        id: crypto.randomUUID(),
+        title,
+        text,
+        blocks: [{ id: crypto.randomUUID(), type: "line", text }]
+      };
+
+      group.items.push(quickItem);
+      attachQuickLink(quickItem.id);
+      els.newQuickTitleInput.value = "";
+      els.newQuickTextInput.value = "";
+      closeLinkModal();
+    }
+
+    function normalizeData(data) {
+      data.sections ??= [];
+      data.quickGroups ??= [];
+      data.meta ??= { title: "Salescript Workspace", updatedAt: new Date().toISOString() };
+
+      data.sections.forEach((section) => {
+        section.scripts ??= [];
+        section.scripts.forEach((script) => {
+          script.blocks ??= [];
+          script.blocks.forEach((block) => {
+            if (typeof block.html === "string") {
+              block.html = String(block.html);
+              block.text = extractTextFromHtml(block.html);
+            } else {
+              block.text = String(block.text ?? "");
+            }
+          });
+        });
+      });
+
+      data.quickGroups.forEach((group) => {
+        group.items ??= [];
+        group.items.forEach((item) => {
+          item.blocks = getQuickBlocks(item);
+          if (typeof item.html === "string") {
+            item.html = String(item.html);
+            item.text = extractTextFromHtml(item.html);
+          } else {
+            item.text = String(item.text ?? "");
+          }
+          syncQuickItemText(item);
+        });
+      });
+
+      return data;
+    }
+
+    function renderBlockHtml(block) {
+      if (typeof block.html === "string" && block.html) {
+        return sanitizeRichHtml(block.html);
+      }
+      return escapeHtml(String(block.text ?? "")).replace(/\n/g, "<br>");
+    }
+
+    function getQuickBlocks(item) {
+      if (Array.isArray(item.blocks) && item.blocks.length) return item.blocks;
+
+      const initialBlock = {
+        id: crypto.randomUUID(),
+        type: "line",
+        text: String(item.text ?? "Новая реплика")
+      };
+
+      if (typeof item.html === "string" && item.html) {
+        initialBlock.html = String(item.html);
+        initialBlock.text = extractTextFromHtml(initialBlock.html) || initialBlock.text;
+      }
+
+      item.blocks = [initialBlock];
+      return item.blocks;
+    }
+
+    function syncQuickItemText(item) {
+      const blocks = getQuickBlocks(item);
+      item.text = blocks.map((block) => block.text || extractTextFromHtml(renderBlockHtml(block))).filter(Boolean).join("\n");
+      item.html = blocks.map((block) => renderBlockHtml(block)).join("<br><br>");
+    }
+
+    function renderQuickItemHtml(item) {
+      if (typeof item.html === "string" && item.html) {
+        return sanitizeRichHtml(item.html);
+      }
+      return escapeHtml(String(item.text ?? "")).replace(/\n/g, "<br>");
+    }
+
+    function sanitizeRichHtml(rawHtml) {
+      const template = document.createElement("template");
+      template.innerHTML = String(rawHtml ?? "");
+
+      const sanitizeNode = (node) => {
+        if (node.nodeType === Node.TEXT_NODE) return escapeHtml(node.textContent);
+        if (node.nodeType !== Node.ELEMENT_NODE) return "";
+
+        const tag = node.tagName.toLowerCase();
+        if (tag === "br") return "<br>";
+
+        if (tag === "a") {
+          const itemId = node.dataset.quickItemId;
+          const text = node.textContent.trim();
+          if (!itemId || !findQuickItem(itemId) || !text) return escapeHtml(node.textContent);
+          return `<a href="#" class="script-inline-link" data-quick-item-id="${escapeHtml(itemId)}">${escapeHtml(text)}</a>`;
+        }
+
+        const inner = Array.from(node.childNodes).map(sanitizeNode).join("");
+        if (tag === "div" || tag === "p") return `${inner}<br>`;
+        return inner;
+      };
+
+      const html = Array.from(template.content.childNodes).map(sanitizeNode).join("")
+        .replace(/(<br>\s*){3,}/g, "<br><br>")
+        .replace(/^(<br>\s*)+|(<br>\s*)+$/g, "");
+
+      return html || escapeHtml(defaultValue("block", "html"));
+    }
+
+    function extractTextFromHtml(html) {
+      const template = document.createElement("template");
+      template.innerHTML = html;
+      return template.content.textContent.trim();
+    }
+
+    function scriptMatches(script, filter) {
+      const haystack = [script.title, script.summary, ...script.tags, ...script.blocks.map((block) => block.text)].join(" ").toLowerCase();
+      return haystack.includes(filter);
+    }
+
+    function blockClass(type) {
+      if (type === "note") return "is-note";
+      if (type === "highlight") return "is-highlight";
+      return "";
+    }
+
+    function editableAttr(kind, id, field) {
+      return state.editMode ? `data-kind="${kind}" data-id="${id}" data-field="${field}"` : "";
+    }
+
+    function defaultValue(kind, field) {
+      if (field === "title") return "Без названия";
+      if (kind === "block" || kind === "quick-block") return "Введите текст";
+      if (field === "summary") return "Добавьте описание сценария";
+      if (field === "note") return "Добавьте описание этапа";
+      return "Введите текст";
+    }
+
+    function formatDate(iso) {
+      try { return new Date(iso).toLocaleString("ru-RU"); } catch { return "без даты"; }
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+  </script>
+</body>
+</html>
