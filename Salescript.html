@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Salescript Workspace</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%231d7f8c'/%3E%3Cstop offset='100%25' stop-color='%230f5d67'/%3E%3C/linearGradient%3E%3ClinearGradient id='accent' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23f4c261'/%3E%3Cstop offset='100%25' stop-color='%23d89b2d'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23bg)'/%3E%3Cpath d='M40 14H24a4 4 0 0 0-4 4v28a4 4 0 0 0 4 4h16l8-8V18a4 4 0 0 0-4-4Z' fill='%23fff7ea'/%3E%3Cpath d='M40 14v10a4 4 0 0 0 4 4h10' fill='%23d7eef1' opacity='.9'/%3E%3Cpath d='M26 24h14M26 30h14M26 36h10' stroke='%231d7f8c' stroke-width='3' stroke-linecap='round' opacity='.8'/%3E%3Cpath d='M19.4 34.2c1.7 3.3 4.4 6 7.7 7.7l3.2-3.2c.4-.4.9-.5 1.4-.4 1.5.5 3 .8 4.6.8.8 0 1.4.6 1.4 1.4V45c0 .8-.6 1.4-1.4 1.4C23.7 46.4 13.6 36.3 13.6 23.8c0-.8.6-1.4 1.4-1.4h4.6c.8 0 1.4.6 1.4 1.4 0 1.6.3 3.2.8 4.6.2.5 0 1-.4 1.4l-3.2 3.2Z' fill='url(%23accent)' stroke='%23fff7ea' stroke-width='1.5'/%3E%3C/svg%3E">
   <style>
     :root {
       --bg: #ece8e1;
@@ -17,6 +18,7 @@
       --text: #2d2a26;
       --muted: #736d66;
       --danger: #b64848;
+      --content-font-size: 12px;
       --shadow: 0 14px 36px rgba(63, 42, 22, 0.08);
     }
 
@@ -118,10 +120,30 @@
     .body-block { border: 1px solid transparent; border-radius: 9px; padding: 5px 7px; transition: background 0.18s ease, border-color 0.18s ease; }
     .body-block:hover { background: #faf8f4; border-color: #efe4d6; }
     .body-block + .body-block { margin-top: 4px; }
-    .body-block p { margin: 0; white-space: pre-wrap; line-height: 1.2; font-size: 12px; }
+    .body-block p { margin: 0; white-space: pre-wrap; line-height: 1.2; font-size: var(--content-font-size); }
     .body-block p[contenteditable="true"] { white-space: normal; }
     .body-block.is-dragging { opacity: 0.45; border-color: #7ab3bc; }
     .body-block.is-drop-target { border-color: #2797a5; background: #eef8f9; }
+    .body-block.is-resume-target {
+      border-color: #b45f06;
+      background: linear-gradient(180deg, #fff1b8 0%, #ffd56a 100%);
+      box-shadow: 0 0 0 3px rgba(180, 95, 6, 0.45), 0 14px 30px rgba(180, 95, 6, 0.22);
+      animation: resumePulse 1.35s ease-in-out infinite;
+    }
+    @keyframes resumePulse {
+      0% {
+        background: linear-gradient(180deg, #fff7cf 0%, #ffe08d 100%);
+        box-shadow: 0 0 0 2px rgba(180, 95, 6, 0.28), 0 10px 22px rgba(180, 95, 6, 0.14);
+      }
+      50% {
+        background: linear-gradient(180deg, #ffe891 0%, #ffc83d 100%);
+        box-shadow: 0 0 0 4px rgba(180, 95, 6, 0.5), 0 16px 34px rgba(180, 95, 6, 0.28);
+      }
+      100% {
+        background: linear-gradient(180deg, #fff7cf 0%, #ffe08d 100%);
+        box-shadow: 0 0 0 2px rgba(180, 95, 6, 0.28), 0 10px 22px rgba(180, 95, 6, 0.14);
+      }
+    }
     .body-block-row { display: grid; grid-template-columns: auto 1fr; gap: 6px; align-items: start; }
     .drag-handle {
       display: inline-flex;
@@ -188,6 +210,21 @@
     .quick-response-title { margin: 0 0 6px; font-size: 15px; }
     .quick-response-text { margin: 0; line-height: 1.3; font-size: 12px; white-space: pre-wrap; }
     .toolbar-note { color: var(--muted); font-size: 10px; padding: 6px 2px 0; }
+    .font-size-controls {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 4px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: rgba(255, 255, 255, 0.82);
+    }
+    .font-size-value {
+      min-width: 44px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 10px;
+    }
     .modal-backdrop {
       position: fixed; inset: 0; background: rgba(26, 22, 17, 0.38); display: grid; place-items: center;
       padding: 12px; z-index: 50;
@@ -228,6 +265,221 @@
       box-shadow: 0 10px 24px rgba(36, 26, 16, 0.18);
     }
     .selection-popover.hidden { display: none !important; }
+    .mindmap-modal-card {
+      width: min(96vw, 1500px);
+      height: min(90vh, 920px);
+      max-height: none;
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr);
+      gap: 10px;
+      overflow: hidden;
+      padding: 14px;
+    }
+    .mindmap-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .mindmap-legend {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 10px;
+    }
+    .mindmap-legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .mindmap-legend i {
+      width: 16px;
+      height: 2px;
+      border-radius: 999px;
+      background: #89b4ba;
+      display: inline-block;
+    }
+    .mindmap-legend i.is-link { background: #1d7f8c; height: 3px; }
+    .mindmap-legend i.is-sequence { background: #c9c0b2; }
+    .mindmap-board {
+      position: relative;
+      min-height: 0;
+      overflow: auto;
+      cursor: default;
+      border: 1px solid rgba(212, 206, 195, 0.9);
+      border-radius: 16px;
+      background:
+        radial-gradient(circle at top left, rgba(29, 127, 140, 0.08), transparent 26%),
+        linear-gradient(180deg, #fdfbf7 0%, #f3efe7 100%);
+    }
+    .mindmap-board.is-panning {
+      cursor: grabbing;
+      user-select: none;
+    }
+    body.mindmap-link-dragging {
+      user-select: none;
+      cursor: grabbing;
+    }
+    .mindmap-viewport {
+      position: relative;
+      min-width: 100%;
+      min-height: 100%;
+    }
+    .mindmap-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform-origin: top left;
+    }
+    .mindmap-svg {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: visible;
+    }
+    .mindmap-edge {
+      fill: none;
+      stroke-linecap: round;
+      stroke-width: 3;
+      opacity: 0.9;
+    }
+    .mindmap-edge.is-link { stroke: #1d7f8c; }
+    .mindmap-edge.is-sequence {
+      stroke: #c3b9aa;
+      stroke-dasharray: 7 9;
+      stroke-width: 2;
+    }
+    .mindmap-edge.is-drag-preview {
+      stroke: rgba(29, 127, 140, 0.8);
+      stroke-dasharray: 10 8;
+      stroke-width: 3;
+    }
+    .mindmap-lane {
+      position: absolute;
+      width: 340px;
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(137, 180, 186, 0.3);
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 14px 30px rgba(54, 37, 21, 0.08);
+    }
+    .mindmap-lane.is-script {
+      border-color: rgba(216, 155, 45, 0.45);
+      background: linear-gradient(180deg, rgba(255, 251, 239, 0.96), rgba(255, 255, 255, 0.92));
+    }
+    .mindmap-lane-head {
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(212, 206, 195, 0.85);
+    }
+    .mindmap-lane-head h4 {
+      margin: 0;
+      font-size: 12px;
+      line-height: 1.2;
+    }
+    .mindmap-lane-head p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 10px;
+    }
+    .mindmap-node-list {
+      display: grid;
+      gap: 18px;
+    }
+    .mindmap-node {
+      border: 1px solid rgba(212, 206, 195, 0.95);
+      border-radius: 12px;
+      background: #fff;
+      padding: 10px;
+      box-shadow: 0 8px 18px rgba(45, 32, 21, 0.06);
+      transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+    }
+    .mindmap-node.is-note { background: #fbfaf7; }
+    .mindmap-node.is-highlight {
+      background: linear-gradient(180deg, #fff6df 0%, #fff1cb 100%);
+      border-color: #e8c87f;
+    }
+    .mindmap-node.is-link-target {
+      border-color: #1d7f8c;
+      box-shadow: 0 0 0 3px rgba(29, 127, 140, 0.22), 0 12px 26px rgba(29, 127, 140, 0.12);
+      transform: translateY(-1px);
+    }
+    .mindmap-node-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .mindmap-node-top-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .mindmap-node-grip {
+      cursor: grab;
+      min-width: 28px;
+      text-align: center;
+      user-select: none;
+    }
+    .mindmap-node-grip:active { cursor: grabbing; }
+    .mindmap-node-meta {
+      font-size: 10px;
+      color: var(--muted);
+    }
+    .mindmap-node-actions {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+    .mindmap-node-body {
+      min-height: 78px;
+      max-height: 168px;
+      overflow: auto;
+      border-radius: 10px;
+      padding: 8px 9px;
+      background: rgba(247, 244, 238, 0.65);
+      line-height: 1.25;
+      font-size: var(--content-font-size);
+      white-space: normal;
+    }
+    .mindmap-link-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .mindmap-link-chip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      padding: 5px 6px;
+      border-radius: 9px;
+      border: 1px solid #cfe1e4;
+      background: #eef7f8;
+      font-size: 10px;
+    }
+    .mindmap-link-chip strong {
+      display: block;
+      color: var(--accent-strong);
+      margin-bottom: 1px;
+    }
+    .mindmap-link-chip span {
+      color: var(--muted);
+      display: block;
+      line-height: 1.25;
+    }
+    .mindmap-empty {
+      padding: 32px 20px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 12px;
+    }
     .statusbar {
       padding: 7px 10px; border-top: 1px solid rgba(212, 206, 195, 0.85); color: var(--muted);
       font-size: 10px; background: rgba(255, 255, 255, 0.72);
@@ -262,6 +514,7 @@
         <button class="btn btn-soft" id="addSectionBtn">+ Этап</button>
         <button class="btn btn-soft" id="addScriptBtn">+ Сценарий</button>
         <button class="btn btn-soft" id="addBlockBtn">+ Реплика</button>
+        <button class="btn" id="mindMapBtn">Mind Map</button>
         <button class="btn" id="exportBtn">Экспорт JSON</button>
         <button class="btn" id="importBtn">Импорт JSON</button>
         <button class="btn btn-danger" id="resetBtn">Сбросить демо</button>
@@ -342,8 +595,52 @@
     <button class="btn btn-soft" id="selectionPopoverLinkBtn">Создать ссылку</button>
   </div>
 
+  <div class="modal-backdrop hidden" id="mindMapModal">
+    <div class="modal-card mindmap-modal-card">
+      <div class="modal-head">
+        <div>
+          <h3 id="mindMapTitle">Mind Map сценария</h3>
+          <p id="mindMapSubtitle">Схема реплик, быстрых ответов и ссылок для активного сценария.</p>
+        </div>
+        <button class="icon-btn" id="closeMindMapBtn">Закрыть</button>
+      </div>
+      <div class="mindmap-toolbar">
+        <div class="mindmap-legend">
+          <span><i class="is-sequence"></i> последовательно по сценарию</span>
+          <span><i class="is-link"></i> переход по ссылке</span>
+        </div>
+        <div class="toolbar-note">Текст в карточках можно редактировать прямо здесь. Связи добавляются и удаляются у самой реплики.</div>
+      </div>
+      <div class="mindmap-board" id="mindMapBoard">
+        <div class="mindmap-viewport" id="mindMapViewport">
+          <div class="mindmap-canvas" id="mindMapCanvas"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="mindMapLinkModal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div>
+          <h3>Добавить связь</h3>
+          <p id="mindMapLinkSubtitle">Выберите, куда должна вести новая связь из этой реплики.</p>
+        </div>
+        <button class="icon-btn" id="closeMindMapLinkModalBtn">Закрыть</button>
+      </div>
+      <div class="modal-list" id="mindMapLinkList"></div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="applyMindMapLinkBtn">Добавить связь</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const STORAGE_KEY = "salescript-workspace-v1";
+    const CONTENT_FONT_SIZE_KEY = "salescript-content-font-size";
+    const INDEXED_DB_NAME = "salescript-workspace-db";
+    const INDEXED_DB_STORE = "snapshots";
+    const INDEXED_DB_KEY = "current";
 
     const starterData = {
       meta: { title: "Скрипты продаж по телефону", updatedAt: new Date().toISOString() },
@@ -525,17 +822,28 @@
     };
 
     const state = {
-      data: loadData(),
+      data: normalizeData(structuredClone(starterData)),
       editMode: false,
       activeSectionId: null,
       activeScriptId: null,
       centerMode: "script",
       activeQuickResponseId: null,
-      selectedModalQuickItemId: null,
+      contentFontSize: loadContentFontSize(),
+      pendingHighlightBlockId: null,
+      quickViewHistory: [],
+      selectedModalLinkTarget: null,
+      mindMapOpen: false,
+      selectedMindMapLinkTarget: null,
+      mindMapLinkSource: null,
+      mindMapZoom: 1,
+      mindMapMetrics: { width: 0, height: 0 },
       search: ""
     };
 
     let pendingLinkSelection = null;
+    let dataSaveQueue = Promise.resolve();
+    let mindMapDragState = null;
+    let mindMapPanState = null;
 
     const els = {
       sidebar: document.getElementById("sidebar"),
@@ -550,6 +858,7 @@
       addSectionBtn: document.getElementById("addSectionBtn"),
       addScriptBtn: document.getElementById("addScriptBtn"),
       addBlockBtn: document.getElementById("addBlockBtn"),
+      mindMapBtn: document.getElementById("mindMapBtn"),
       exportBtn: document.getElementById("exportBtn"),
       importBtn: document.getElementById("importBtn"),
       importInput: document.getElementById("importInput"),
@@ -565,35 +874,143 @@
       createQuickFromModalBtn: document.getElementById("createQuickFromModalBtn")
       ,
       selectionPopover: document.getElementById("selectionPopover"),
-      selectionPopoverLinkBtn: document.getElementById("selectionPopoverLinkBtn")
+      selectionPopoverLinkBtn: document.getElementById("selectionPopoverLinkBtn"),
+      mindMapModal: document.getElementById("mindMapModal"),
+      closeMindMapBtn: document.getElementById("closeMindMapBtn"),
+      mindMapTitle: document.getElementById("mindMapTitle"),
+      mindMapSubtitle: document.getElementById("mindMapSubtitle"),
+      mindMapBoard: document.getElementById("mindMapBoard"),
+      mindMapViewport: document.getElementById("mindMapViewport"),
+      mindMapCanvas: document.getElementById("mindMapCanvas"),
+      mindMapLinkModal: document.getElementById("mindMapLinkModal"),
+      closeMindMapLinkModalBtn: document.getElementById("closeMindMapLinkModalBtn"),
+      mindMapLinkSubtitle: document.getElementById("mindMapLinkSubtitle"),
+      mindMapLinkList: document.getElementById("mindMapLinkList"),
+      applyMindMapLinkBtn: document.getElementById("applyMindMapLinkBtn")
     };
 
-    initSelection();
     bindEvents();
-    render();
+    initApp();
 
-    function loadData() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return normalizeData(structuredClone(starterData));
-        const parsed = JSON.parse(raw);
-        if (!parsed || !Array.isArray(parsed.sections) || !Array.isArray(parsed.quickGroups)) {
-          return normalizeData(structuredClone(starterData));
-        }
-        if (!parsed.sections.length && !parsed.quickGroups.length) {
-          return normalizeData(structuredClone(starterData));
-        }
-        return normalizeData(parsed);
-      } catch {
-        return normalizeData(structuredClone(starterData));
-      }
+    function readStoredState(storageKey, storage = localStorage) {
+      const raw = storage.getItem(storageKey);
+      if (!raw) return null;
+
+      const parsed = JSON.parse(raw);
+      if (!parsed || !Array.isArray(parsed.sections) || !Array.isArray(parsed.quickGroups)) return null;
+      if (!parsed.sections.length && !parsed.quickGroups.length) return null;
+      parsed.meta ??= {};
+      return parsed;
+    }
+
+    function pickFreshestState(...states) {
+      const validStates = states.filter(Boolean);
+      if (!validStates.length) return null;
+
+      return validStates.sort((left, right) => {
+        const leftTime = Date.parse(left.meta?.updatedAt || 0) || 0;
+        const rightTime = Date.parse(right.meta?.updatedAt || 0) || 0;
+        return rightTime - leftTime;
+      })[0];
+    }
+
+    function loadContentFontSize() {
+      const raw = Number(localStorage.getItem(CONTENT_FONT_SIZE_KEY));
+      if (!Number.isFinite(raw)) return 12;
+      return Math.min(24, Math.max(10, raw));
     }
 
     function saveData(message = "Изменения сохранены локально") {
       state.data.meta.updatedAt = new Date().toISOString();
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.data));
+      persistDataSnapshot();
       els.contentStatus.textContent = message;
       els.quickStatus.textContent = "Автосохранение включено";
+    }
+
+    function persistDataSnapshot() {
+      const snapshot = structuredClone(state.data);
+      const payload = JSON.stringify(snapshot);
+      localStorage.setItem(STORAGE_KEY, payload);
+      queueIndexedDbWrite(snapshot);
+    }
+
+    function queueIndexedDbWrite(snapshot) {
+      dataSaveQueue = dataSaveQueue
+        .catch(() => null)
+        .then(() => writeIndexedDbState(snapshot));
+      return dataSaveQueue;
+    }
+
+    function openWorkspaceDb() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(INDEXED_DB_NAME, 1);
+        request.onupgradeneeded = () => {
+          const db = request.result;
+          if (!db.objectStoreNames.contains(INDEXED_DB_STORE)) {
+            db.createObjectStore(INDEXED_DB_STORE);
+          }
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    async function readIndexedDbState() {
+      if (!("indexedDB" in window)) return null;
+      try {
+        const db = await openWorkspaceDb();
+        const result = await new Promise((resolve, reject) => {
+          const tx = db.transaction(INDEXED_DB_STORE, "readonly");
+          const store = tx.objectStore(INDEXED_DB_STORE);
+          const request = store.get(INDEXED_DB_KEY);
+          request.onsuccess = () => resolve(request.result ?? null);
+          request.onerror = () => reject(request.error);
+        });
+        db.close();
+        if (!result || !Array.isArray(result.sections) || !Array.isArray(result.quickGroups)) return null;
+        result.meta ??= {};
+        return result;
+      } catch {
+        return null;
+      }
+    }
+
+    async function writeIndexedDbState(data) {
+      if (!("indexedDB" in window)) return;
+      try {
+        const db = await openWorkspaceDb();
+        await new Promise((resolve, reject) => {
+          const tx = db.transaction(INDEXED_DB_STORE, "readwrite");
+          const store = tx.objectStore(INDEXED_DB_STORE);
+          store.put(structuredClone(data), INDEXED_DB_KEY);
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+          tx.onabort = () => reject(tx.error);
+        });
+        db.close();
+      } catch {
+        // Ignore IndexedDB autosave failures and keep other storage backends working.
+      }
+    }
+
+    async function loadInitialData() {
+      const indexedDbState = await readIndexedDbState();
+      const legacyState = readStoredState(STORAGE_KEY);
+      const freshestState = pickFreshestState(indexedDbState, legacyState);
+      const initialData = freshestState ? structuredClone(freshestState) : structuredClone(starterData);
+
+      // Migrate older localStorage state into IndexedDB the first time it is seen.
+      if (legacyState && freshestState === legacyState) {
+        queueIndexedDbWrite(structuredClone(initialData));
+      }
+
+      return normalizeData(initialData);
+    }
+
+    async function initApp() {
+      state.data = await loadInitialData();
+      initSelection();
+      render();
     }
 
     function initSelection() {
@@ -602,6 +1019,7 @@
       state.activeScriptId = firstSection?.scripts[0]?.id ?? null;
       state.centerMode = "script";
       state.activeQuickResponseId = null;
+      state.quickViewHistory = [];
     }
 
     function bindEvents() {
@@ -616,14 +1034,43 @@
       });
       els.selectionPopoverLinkBtn.addEventListener("mousedown", (event) => {
         event.preventDefault();
-        openLinkModal();
+        if (pendingLinkSelection?.context === "mindmap") {
+          openMindMapLinkModal(pendingLinkSelection.nodeId, { useSelection: true });
+        } else {
+          openLinkModal();
+        }
+      });
+      els.mindMapBtn.addEventListener("click", () => {
+        openMindMap();
+      });
+      els.closeMindMapBtn.addEventListener("click", closeMindMap);
+      els.mindMapModal.addEventListener("click", (event) => {
+        if (event.target === els.mindMapModal) closeMindMap();
+      });
+      els.closeMindMapLinkModalBtn.addEventListener("click", closeMindMapLinkModal);
+      els.mindMapLinkModal.addEventListener("click", (event) => {
+        if (event.target === els.mindMapLinkModal) closeMindMapLinkModal();
+      });
+      els.applyMindMapLinkBtn.addEventListener("click", () => {
+        applyMindMapLink();
+      });
+      els.mindMapBoard.addEventListener("wheel", handleMindMapWheel, { passive: false });
+      els.mindMapBoard.addEventListener("mousedown", handleMindMapMouseDown);
+      document.addEventListener("mousemove", handleMindMapMouseMove);
+      document.addEventListener("mouseup", handleMindMapMouseUp);
+      els.mindMapBoard.addEventListener("auxclick", (event) => {
+        if (event.button === 1) event.preventDefault();
       });
       els.attachSelectedLinkBtn.addEventListener("click", () => {
-        if (!state.selectedModalQuickItemId) {
-          els.contentStatus.textContent = "Выберите быстрый ответ в окне привязки";
+        if (!state.selectedModalLinkTarget) {
+          els.contentStatus.textContent = "Выберите цель ссылки в окне привязки";
           return;
         }
-        attachQuickLink(state.selectedModalQuickItemId);
+        if (state.selectedModalLinkTarget.kind === "quick-item") {
+          attachQuickLink(state.selectedModalLinkTarget.id);
+        } else if (state.selectedModalLinkTarget.kind === "script-block") {
+          attachScriptBlockLink(state.selectedModalLinkTarget.id);
+        }
         closeLinkModal();
       });
       els.createQuickFromModalBtn.addEventListener("click", createQuickResponseFromModal);
@@ -693,11 +1140,13 @@
 
     function render() {
       hideSelectionPopover();
+      applyContentFontSize();
       document.body.classList.toggle("edit-mode", state.editMode);
       els.toggleEditBtn.textContent = state.editMode ? "Просмотр" : "Редактировать";
       renderSidebar();
       renderContent();
       renderQuickPanel();
+      renderMindMap();
     }
 
     function renderSidebar() {
@@ -742,6 +1191,7 @@
 
       els.sidebar.querySelectorAll("[data-script-id]").forEach((button) => {
         button.addEventListener("click", () => {
+          resetQuickViewHistory();
           state.centerMode = "script";
           state.activeSectionId = button.dataset.sectionId;
           state.activeScriptId = button.dataset.scriptId;
@@ -784,6 +1234,7 @@
         <button class="btn btn-soft" data-content-action="add-highlight">+ Акцент</button>
         <button class="btn btn-soft" data-content-action="open-link-modal">Добавить ссылку</button>
         <button class="btn btn-danger" data-content-action="delete-script">Удалить сценарий</button>
+        ${renderContentFontControls()}
       ` : "";
 
       if (state.editMode) {
@@ -826,6 +1277,7 @@
       bindEditable(els.content);
       bindContentActions();
       bindContentInteractions();
+      revealPendingHighlightBlock();
     }
 
     function renderQuickContent() {
@@ -840,8 +1292,9 @@
       const group = findQuickGroupByItemId(quickItem.id);
       const quickBlocks = getQuickBlocks(quickItem);
       const blocksHtml = quickBlocks.length ? quickBlocks.map((block) => `
-        <article class="body-block ${blockClass(block.type)}">
+        <article class="body-block ${blockClass(block.type)}" data-block-drop-zone="${block.id}">
           <div class="body-block-row">
+            ${state.editMode ? `<button class="drag-handle" draggable="true" data-draggable-block="${block.id}" title="Перетащить блок" aria-label="Перетащить блок"></button>` : ""}
             <p class="editable" ${editableAttr("quick-block", block.id, "html")}>${renderBlockHtml(block)}</p>
           </div>
           ${state.editMode ? `
@@ -859,8 +1312,10 @@
       `;
 
       els.contentToolbar.innerHTML = `
+        <button class="btn" data-content-action="go-back-level" ${state.quickViewHistory.length ? "" : "disabled"}>Назад на уровень</button>
         <button class="btn" data-content-action="show-script-view">Вернуться к сценарию</button>
         ${state.editMode ? '<button class="btn btn-soft" data-content-action="open-link-modal">Добавить ссылку</button>' : ""}
+        ${state.editMode ? renderContentFontControls() : ""}
       `;
 
       if (state.editMode) {
@@ -955,11 +1410,38 @@
     }
 
     function handleEditableKeydown(event) {
-      if (event.currentTarget.dataset.field === "html") return;
+      if (event.currentTarget.dataset.field === "html") {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          insertLineBreakAtCursor();
+          handleEditableInput(event);
+        }
+        return;
+      }
       if (event.key === "Enter" && event.currentTarget.tagName !== "P") {
         event.preventDefault();
         event.currentTarget.blur();
       }
+    }
+
+    function insertLineBreakAtCursor() {
+      const selection = window.getSelection();
+      if (!selection || selection.rangeCount === 0) return;
+
+      const range = selection.getRangeAt(0);
+      range.deleteContents();
+
+      const br = document.createElement("br");
+      range.insertNode(br);
+
+      const spacer = document.createTextNode("");
+      range.setStartAfter(br);
+      range.insertNode(spacer);
+
+      range.setStartAfter(spacer);
+      range.collapse(true);
+      selection.removeAllRanges();
+      selection.addRange(range);
     }
 
     function bindSidebarActions() {
@@ -1013,9 +1495,16 @@
       });
       els.contentToolbar.querySelectorAll("[data-content-action='show-script-view']").forEach((button) => {
         button.addEventListener("click", () => {
+          resetQuickViewHistory();
           state.centerMode = "script";
+          state.activeQuickResponseId = null;
           renderContent();
           renderQuickPanel();
+        });
+      });
+      els.contentToolbar.querySelectorAll("[data-content-action='go-back-level']").forEach((button) => {
+        button.addEventListener("click", () => {
+          goBackOneLevel();
         });
       });
       els.contentToolbar.querySelectorAll("[data-content-action='add-note']").forEach((button) => {
@@ -1036,6 +1525,21 @@
           state.activeScriptId = nextSection?.scripts[0]?.id ?? null;
           saveData("Сценарий удален");
           render();
+        });
+      });
+      els.contentToolbar.querySelectorAll("[data-content-action='font-size-decrease']").forEach((button) => {
+        button.addEventListener("click", () => {
+          updateContentFontSize(-1);
+        });
+      });
+      els.contentToolbar.querySelectorAll("[data-content-action='font-size-reset']").forEach((button) => {
+        button.addEventListener("click", () => {
+          setContentFontSize(12);
+        });
+      });
+      els.contentToolbar.querySelectorAll("[data-content-action='font-size-increase']").forEach((button) => {
+        button.addEventListener("click", () => {
+          updateContentFontSize(1);
         });
       });
 
@@ -1076,8 +1580,8 @@
     }
 
     function bindBlockDragAndDrop() {
-      const script = getActiveScript();
-      if (!state.editMode || !script) return;
+      const blocks = getActiveContentBlocks();
+      if (!state.editMode || !blocks?.length) return;
 
       els.content.querySelectorAll("[data-draggable-block]").forEach((handle) => {
         handle.addEventListener("dragstart", (event) => {
@@ -1123,15 +1627,19 @@
     }
 
     function reorderBlocksByDrop(draggingId, targetId) {
-      const script = getActiveScript();
-      if (!script) return;
+      const blocks = getActiveContentBlocks();
+      if (!blocks) return;
 
-      const fromIndex = script.blocks.findIndex((block) => block.id === draggingId);
-      const toIndex = script.blocks.findIndex((block) => block.id === targetId);
+      const fromIndex = blocks.findIndex((block) => block.id === draggingId);
+      const toIndex = blocks.findIndex((block) => block.id === targetId);
       if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) return;
 
-      const [moved] = script.blocks.splice(fromIndex, 1);
-      script.blocks.splice(toIndex, 0, moved);
+      const [moved] = blocks.splice(fromIndex, 1);
+      blocks.splice(toIndex, 0, moved);
+      if (state.centerMode === "quick") {
+        const quickItem = getActiveQuickItem();
+        if (quickItem) syncQuickItemText(quickItem);
+      }
       saveData("Порядок реплик обновлен");
       render();
     }
@@ -1147,10 +1655,18 @@
         link.addEventListener("click", (event) => {
           if (state.editMode) return;
           event.preventDefault();
+          pushCurrentViewToHistory();
           state.centerMode = "quick";
           state.activeQuickResponseId = link.dataset.quickItemId;
           renderContent();
           renderQuickPanel();
+        });
+      });
+      els.content.querySelectorAll("[data-script-block-id]").forEach((link) => {
+        link.addEventListener("click", (event) => {
+          if (state.editMode) return;
+          event.preventDefault();
+          navigateToScriptBlock(link.dataset.scriptBlockId);
         });
       });
     }
@@ -1179,6 +1695,7 @@
 
       els.quickPanel.querySelectorAll("[data-action='preview-quick-item']").forEach((button) => {
         button.addEventListener("click", () => {
+          resetQuickViewHistory();
           state.centerMode = "quick";
           state.activeQuickResponseId = button.dataset.itemId;
           els.contentStatus.textContent = "Быстрый ответ показан в центре";
@@ -1245,7 +1762,9 @@
         targetId: node.dataset.id,
         start: offsets.start,
         end: offsets.end,
-        text: range.toString()
+        text: range.toString(),
+        context: node.closest("#mindMapCanvas") ? "mindmap" : "content",
+        nodeId: node.closest("[data-mind-node-id]")?.dataset.mindNodeId || null
       };
 
       showSelectionPopover(range);
@@ -1268,10 +1787,632 @@
     }
 
     function handleGlobalPointerDown(event) {
+      clearResumeHighlight();
       if (els.selectionPopover.contains(event.target)) return;
       if (els.linkModal.contains(event.target)) return;
+      if (els.mindMapLinkModal.contains(event.target)) return;
       if (event.target.closest?.("[data-field='html']")) return;
       hideSelectionPopover();
+    }
+
+    function openMindMap() {
+      if (!getActiveScript()) {
+        els.contentStatus.textContent = "Сначала выберите сценарий";
+        return;
+      }
+      state.mindMapOpen = true;
+      renderMindMap();
+    }
+
+    function closeMindMap() {
+      state.mindMapOpen = false;
+      mindMapDragState = null;
+      mindMapPanState = null;
+      els.mindMapBoard.classList.remove("is-panning");
+      document.body.classList.remove("mindmap-link-dragging");
+      clearMindMapDragPreview();
+      highlightMindMapDropTarget(null);
+      closeMindMapLinkModal();
+      els.mindMapModal.classList.add("hidden");
+    }
+
+    function renderMindMap() {
+      els.mindMapBtn.disabled = !getActiveScript();
+      if (!state.mindMapOpen) {
+        els.mindMapModal.classList.add("hidden");
+        return;
+      }
+
+      const graph = buildMindMapGraph();
+      const script = getActiveScript();
+      els.mindMapTitle.textContent = script ? `Mind Map: ${script.title}` : "Mind Map сценария";
+      els.mindMapSubtitle.textContent = graph.summary;
+      els.mindMapModal.classList.remove("hidden");
+      state.mindMapMetrics = { width: graph.canvasWidth, height: graph.canvasHeight };
+
+      if (!graph.lanes.length) {
+        els.mindMapCanvas.innerHTML = '<div class="mindmap-empty">В активном сценарии пока нет реплик для карты.</div>';
+        return;
+      }
+
+      const svg = `
+        <svg class="mindmap-svg" width="${graph.canvasWidth}" height="${graph.canvasHeight}" viewBox="0 0 ${graph.canvasWidth} ${graph.canvasHeight}" preserveAspectRatio="xMinYMin meet">
+          ${graph.edges.map((edge) => {
+            const source = graph.nodePositions.get(edge.sourceId);
+            const target = graph.nodePositions.get(edge.targetId);
+            if (!source || !target) return "";
+            const startX = source.right;
+            const startY = source.midY;
+            const endX = target.left;
+            const endY = target.midY;
+            const bend = Math.max(54, (endX - startX) / 2);
+            return `<path class="mindmap-edge ${edge.kind === "sequence" ? "is-sequence" : "is-link"}" d="M ${startX} ${startY} C ${startX + bend} ${startY}, ${endX - bend} ${endY}, ${endX} ${endY}"></path>`;
+          }).join("")}
+          <path class="mindmap-edge is-drag-preview hidden" id="mindMapDragPreview"></path>
+        </svg>
+      `;
+
+      const lanesHtml = graph.lanes.map((lane) => `
+        <section class="mindmap-lane ${lane.kind === "script" ? "is-script" : ""}" style="left:${lane.x}px; top:${lane.y}px;">
+          <div class="mindmap-lane-head">
+            <h4>${escapeHtml(lane.title)}</h4>
+            <p>${escapeHtml(lane.subtitle)}</p>
+          </div>
+          <div class="mindmap-node-list">
+            ${lane.nodes.map((node) => renderMindMapNode(node)).join("")}
+          </div>
+        </section>
+      `).join("");
+
+      els.mindMapViewport.style.width = `${graph.canvasWidth * state.mindMapZoom}px`;
+      els.mindMapViewport.style.height = `${graph.canvasHeight * state.mindMapZoom}px`;
+      els.mindMapCanvas.style.width = `${graph.canvasWidth}px`;
+      els.mindMapCanvas.style.height = `${graph.canvasHeight}px`;
+      els.mindMapCanvas.style.transform = `scale(${state.mindMapZoom})`;
+      els.mindMapCanvas.innerHTML = `${svg}${lanesHtml}`;
+      bindEditable(els.mindMapCanvas);
+      bindMindMapActions();
+    }
+
+    function renderMindMapNode(node) {
+      const links = readInlineLinks(renderBlockHtml(node.block)).map((link, index) => {
+        const targetLabel = link.kind === "quick-item"
+          ? findQuickItem(link.id)?.title || "Быстрый ответ"
+          : formatScriptBlockTargetLabel(link.id);
+        return `
+          <div class="mindmap-link-chip">
+            <div>
+              <strong>${escapeHtml(targetLabel)}</strong>
+              <span>${escapeHtml(link.text || "Без подписи")}</span>
+            </div>
+            ${state.editMode ? `<button class="icon-btn icon-btn-danger" type="button" data-mindmap-action="remove-link" data-node-id="${node.id}" data-link-kind="${link.kind}" data-link-id="${link.id}" data-link-index="${index}">Удалить</button>` : ""}
+          </div>
+        `;
+      }).join("");
+
+      return `
+        <article class="mindmap-node ${blockClass(node.block.type)}" data-mind-node-id="${node.id}">
+          <div class="mindmap-node-top">
+            <div class="mindmap-node-meta">${escapeHtml(node.meta)}</div>
+            <div class="mindmap-node-top-actions">
+              ${state.editMode ? `<button class="icon-btn mindmap-node-grip" type="button" data-mindmap-drag-handle="true" data-node-id="${node.id}" title="Тащить связь">⋮⋮</button>` : ""}
+              <button class="icon-btn" type="button" data-mindmap-action="focus-node" data-node-id="${node.id}">Открыть</button>
+            </div>
+          </div>
+          <div class="mindmap-node-body editable" ${editableAttr(node.kind, node.block.id, "html")}>${renderBlockHtml(node.block)}</div>
+          ${links ? `<div class="mindmap-link-list">${links}</div>` : ""}
+          ${state.editMode ? `
+            <div class="mindmap-node-actions">
+              <button class="icon-btn" type="button" data-mindmap-action="open-add-link" data-node-id="${node.id}">+ Связь</button>
+            </div>
+          ` : ""}
+        </article>
+      `;
+    }
+
+    function bindMindMapActions() {
+      els.mindMapCanvas.querySelectorAll("[data-mindmap-action='focus-node']").forEach((button) => {
+        button.addEventListener("click", () => focusMindMapNode(button.dataset.nodeId));
+      });
+      els.mindMapCanvas.querySelectorAll("[data-mindmap-action='open-add-link']").forEach((button) => {
+        button.addEventListener("click", () => {
+          openMindMapLinkModal(button.dataset.nodeId);
+        });
+      });
+      els.mindMapCanvas.querySelectorAll("[data-mindmap-action='remove-link']").forEach((button) => {
+        button.addEventListener("click", () => {
+          removeMindMapLink({
+            nodeId: button.dataset.nodeId,
+            linkKind: button.dataset.linkKind,
+            linkId: button.dataset.linkId,
+            linkIndex: Number(button.dataset.linkIndex)
+          });
+        });
+      });
+      els.mindMapCanvas.querySelectorAll("[data-field='html']").forEach((node) => {
+        node.addEventListener("mouseup", () => rememberLinkSelection(node));
+        node.addEventListener("keyup", () => rememberLinkSelection(node));
+        node.addEventListener("focus", () => rememberLinkSelection(node));
+      });
+    }
+
+    function buildMindMapGraph() {
+      const script = getActiveScript();
+      if (!script) {
+        return { lanes: [], edges: [], nodePositions: new Map(), canvasWidth: 0, canvasHeight: 0, summary: "Сценарий не выбран" };
+      }
+
+      const laneMap = new Map();
+      const edges = [];
+      const quickQueue = [];
+
+      const ensureLane = ({ id, kind, depth, title, subtitle, item = null, scriptRef = null }) => {
+        const key = `${kind}:${id}`;
+        const existing = laneMap.get(key);
+        if (existing) {
+          existing.depth = Math.min(existing.depth, depth);
+          return existing;
+        }
+        const lane = {
+          key,
+          id,
+          kind,
+          depth,
+          title,
+          subtitle,
+          item,
+          scriptRef,
+          nodes: []
+        };
+        laneMap.set(key, lane);
+        if (kind === "quick") quickQueue.push(lane);
+        return lane;
+      };
+
+      const rootLane = ensureLane({
+        id: script.id,
+        kind: "script",
+        depth: 0,
+        title: script.title,
+        subtitle: "Основной сценарий",
+        scriptRef: script
+      });
+
+      populateLaneNodes(rootLane);
+
+      for (let index = 0; index < quickQueue.length; index += 1) {
+        populateLaneNodes(quickQueue[index]);
+      }
+
+      const lanes = Array.from(laneMap.values()).sort((left, right) => left.depth - right.depth || left.title.localeCompare(right.title, "ru"));
+      const nodePositions = new Map();
+      const depthOffsets = new Map();
+      const laneWidth = 340;
+      const laneGapX = 110;
+      const laneGapY = 38;
+      const nodeHeight = 224;
+      const nodeGapY = 18;
+      const lanePadding = 14;
+
+      lanes.forEach((lane) => {
+        const currentOffset = depthOffsets.get(lane.depth) || 28;
+        lane.x = 32 + lane.depth * (laneWidth + laneGapX);
+        lane.y = currentOffset;
+        lane.height = 74 + lane.nodes.length * nodeHeight + Math.max(0, lane.nodes.length - 1) * nodeGapY;
+        depthOffsets.set(lane.depth, currentOffset + lane.height + laneGapY);
+        lane.nodes.forEach((node, index) => {
+          const top = lane.y + 74 + index * (nodeHeight + nodeGapY);
+          nodePositions.set(node.id, {
+            left: lane.x + lanePadding,
+            right: lane.x + laneWidth - lanePadding,
+            midY: top + 72
+          });
+        });
+      });
+
+      const maxDepth = lanes.reduce((value, lane) => Math.max(value, lane.depth), 0);
+      const canvasWidth = 80 + (maxDepth + 1) * (laneWidth + laneGapX);
+      const canvasHeight = Math.max(540, ...lanes.map((lane) => lane.y + lane.height + 40));
+      const totalNodes = lanes.reduce((sum, lane) => sum + lane.nodes.length, 0);
+
+      return {
+        lanes,
+        edges,
+        nodePositions,
+        canvasWidth,
+        canvasHeight,
+        summary: `Узлов: ${totalNodes} • веток: ${lanes.length} • связей: ${edges.filter((edge) => edge.kind === "link").length}`
+      };
+
+      function populateLaneNodes(lane) {
+        if (lane.nodes.length) return;
+        const blocks = lane.kind === "script" ? lane.scriptRef.blocks : getQuickBlocks(lane.item);
+        lane.nodes = blocks.map((block, index) => ({
+          id: `${lane.kind}:${lane.id}:${block.id}`,
+          block,
+          kind: lane.kind === "script" ? "block" : "quick-block",
+          ownerKind: lane.kind,
+          ownerId: lane.id,
+          meta: lane.kind === "script" ? `Реплика ${index + 1}` : `${lane.title} • ${index + 1}`
+        }));
+
+        lane.nodes.forEach((node, index) => {
+          if (index < lane.nodes.length - 1) {
+            edges.push({
+              sourceId: node.id,
+              targetId: lane.nodes[index + 1].id,
+              kind: "sequence"
+            });
+          }
+
+          readInlineLinks(renderBlockHtml(node.block)).forEach((link) => {
+            if (link.kind === "quick-item") {
+              const quickItem = findQuickItem(link.id);
+              if (!quickItem) return;
+              const quickLane = ensureLane({
+                id: quickItem.id,
+                kind: "quick",
+                depth: lane.depth + 1,
+                title: quickItem.title,
+                subtitle: findQuickGroupByItemId(quickItem.id)?.title || "Быстрый ответ",
+                item: quickItem
+              });
+              const targetBlock = getQuickBlocks(quickItem)[0];
+              if (!targetBlock) return;
+              edges.push({
+                sourceId: node.id,
+                targetId: `${quickLane.kind}:${quickLane.id}:${targetBlock.id}`,
+                kind: "link"
+              });
+            }
+
+            if (link.kind === "script-block") {
+              const targetBlock = findBlock(link.id);
+              if (!targetBlock) return;
+              edges.push({
+                sourceId: node.id,
+                targetId: `${rootLane.kind}:${rootLane.id}:${targetBlock.id}`,
+                kind: "link"
+              });
+            }
+          });
+        });
+      }
+    }
+
+    function focusMindMapNode(nodeId) {
+      const node = findMindMapNode(nodeId);
+      if (!node) return;
+      if (node.ownerKind === "script") {
+        navigateToScriptBlock(node.block.id);
+        return;
+      }
+
+      const quickItem = findQuickItem(node.ownerId);
+      if (!quickItem) return;
+      resetQuickViewHistory();
+      state.centerMode = "quick";
+      state.activeQuickResponseId = quickItem.id;
+      renderContent();
+      renderQuickPanel();
+      requestAnimationFrame(() => {
+        const blockNode = els.content.querySelector(`[data-block-drop-zone="${node.block.id}"]`);
+        blockNode?.scrollIntoView({ behavior: "smooth", block: "center" });
+        blockNode?.classList.add("is-resume-target");
+      });
+    }
+
+    function findMindMapNode(nodeId) {
+      const match = nodeId.match(/^(script|quick):(.+):(.+)$/);
+      if (!match) return null;
+      const [, ownerKind, ownerId, blockId] = match;
+      const block = ownerKind === "script" ? findBlock(blockId) : findQuickBlock(blockId);
+      if (!block) return null;
+      return { ownerKind, ownerId, block };
+    }
+
+    function openMindMapLinkModal(nodeId, options = {}) {
+      const node = findMindMapNode(nodeId);
+      if (!node) return;
+      state.mindMapLinkSource = node;
+      state.selectedMindMapLinkTarget = options.preselectedTarget || null;
+      const usesSelection = options.useSelection
+        && pendingLinkSelection?.context === "mindmap"
+        && pendingLinkSelection?.nodeId === nodeId
+        && pendingLinkSelection.start !== pendingLinkSelection.end;
+      state.mindMapLinkSource.selection = usesSelection ? {
+        kind: pendingLinkSelection.kind,
+        targetId: pendingLinkSelection.targetId,
+        start: pendingLinkSelection.start,
+        end: pendingLinkSelection.end,
+        text: pendingLinkSelection.text
+      } : null;
+      els.mindMapLinkSubtitle.textContent = usesSelection
+        ? "Связь будет вставлена в выделенное слово или фразу внутри карточки."
+        : "Новая связь будет добавлена в конец этой реплики.";
+      renderMindMapLinkModal();
+      els.mindMapLinkModal.classList.remove("hidden");
+    }
+
+    function closeMindMapLinkModal() {
+      state.mindMapLinkSource = null;
+      state.selectedMindMapLinkTarget = null;
+      els.mindMapLinkModal.classList.add("hidden");
+    }
+
+    function renderMindMapLinkModal() {
+      const script = getActiveScript();
+      const quickItems = state.data.quickGroups.flatMap((group) => group.items.map((item) => ({ item, group })));
+      const scriptBlocks = (script?.blocks || []).map((block, index) => ({ block, index }));
+      const sourceBlockId = state.mindMapLinkSource?.block.id;
+
+      els.mindMapLinkList.innerHTML = `
+        ${scriptBlocks.map(({ block, index }) => `
+          <button class="modal-option ${state.selectedMindMapLinkTarget?.kind === "script-block" && state.selectedMindMapLinkTarget.id === block.id ? "is-active" : ""}" type="button" data-mindmap-modal-action="choose-script-target" data-target-id="${block.id}" ${block.id === sourceBlockId ? "disabled" : ""}>
+            <strong>Реплика ${index + 1}</strong>
+            <span>${escapeHtml((block.text || "").slice(0, 140) || "Без текста")}</span>
+          </button>
+        `).join("")}
+        ${quickItems.map(({ item, group }) => `
+          <button class="modal-option ${state.selectedMindMapLinkTarget?.kind === "quick-item" && state.selectedMindMapLinkTarget.id === item.id ? "is-active" : ""}" type="button" data-mindmap-modal-action="choose-quick-target" data-target-id="${item.id}">
+            <strong>${escapeHtml(item.title)}</strong>
+            <span>Быстрый ответ • ${escapeHtml(group.title)}</span>
+            <span>${escapeHtml((item.text || "").slice(0, 140) || "Без текста")}</span>
+          </button>
+        `).join("")}
+      `;
+
+      els.mindMapLinkList.querySelectorAll("[data-mindmap-modal-action='choose-script-target']").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.selectedMindMapLinkTarget = { kind: "script-block", id: button.dataset.targetId };
+          renderMindMapLinkModal();
+        });
+      });
+      els.mindMapLinkList.querySelectorAll("[data-mindmap-modal-action='choose-quick-target']").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.selectedMindMapLinkTarget = { kind: "quick-item", id: button.dataset.targetId };
+          renderMindMapLinkModal();
+        });
+      });
+
+      els.applyMindMapLinkBtn.disabled = !state.selectedMindMapLinkTarget;
+    }
+
+    function applyMindMapLink() {
+      const source = state.mindMapLinkSource;
+      const target = state.selectedMindMapLinkTarget;
+      if (!source || !target) return;
+
+      const label = target.kind === "quick-item"
+        ? findQuickItem(target.id)?.title || "Быстрый ответ"
+        : formatScriptBlockTargetLabel(target.id);
+      const nextHtml = source.selection
+        ? buildMindMapLinkedHtml(source, target, label)
+        : appendMindMapLinkHtml(source, target, label);
+      if (!nextHtml) return;
+
+      updateEntity(source.ownerKind === "script" ? "block" : "quick-block", source.block.id, "html", nextHtml, {
+        message: "Связь добавлена"
+      });
+      pendingLinkSelection = null;
+      hideSelectionPopover();
+      closeMindMapLinkModal();
+    }
+
+    function removeMindMapLink({ nodeId, linkKind, linkId, linkIndex }) {
+      const node = findMindMapNode(nodeId);
+      if (!node) return;
+
+      const template = document.createElement("template");
+      template.innerHTML = renderBlockHtml(node.block);
+      const anchors = Array.from(template.content.querySelectorAll(linkKind === "quick-item" ? "a[data-quick-item-id]" : "a[data-script-block-id]"))
+        .filter((anchor) => (linkKind === "quick-item" ? anchor.dataset.quickItemId : anchor.dataset.scriptBlockId) === linkId);
+      const targetAnchor = anchors[linkIndex];
+      if (!targetAnchor) return;
+      targetAnchor.replaceWith(document.createTextNode(targetAnchor.textContent || ""));
+
+      const nextHtml = sanitizeRichHtml(template.innerHTML);
+      updateEntity(node.ownerKind === "script" ? "block" : "quick-block", node.block.id, "html", nextHtml, {
+        message: "Связь удалена"
+      });
+    }
+
+    function appendMindMapLinkHtml(source, target, label) {
+      const datasetAttr = target.kind === "quick-item"
+        ? `data-quick-item-id="${escapeHtml(target.id)}"`
+        : `data-script-block-id="${escapeHtml(target.id)}"`;
+      const currentHtml = renderBlockHtml(source.block);
+      const joiner = currentHtml ? "<br>" : "";
+      return `${currentHtml}${joiner}<a href="#" class="script-inline-link" ${datasetAttr}>${escapeHtml(label)}</a>`;
+    }
+
+    function buildMindMapLinkedHtml(source, target, label) {
+      const sourceSelection = source.selection;
+      if (!sourceSelection) return appendMindMapLinkHtml(source, target, label);
+
+      const targetNode = els.mindMapCanvas.querySelector(`[data-kind="${sourceSelection.kind}"][data-id="${sourceSelection.targetId}"][data-field="html"]`);
+      if (!targetNode) return null;
+
+      const liveRange = createRangeFromOffsets(targetNode, sourceSelection.start, sourceSelection.end);
+      if (!liveRange) return null;
+
+      const anchor = document.createElement("a");
+      anchor.href = "#";
+      anchor.className = "script-inline-link";
+      if (target.kind === "quick-item") {
+        anchor.dataset.quickItemId = target.id;
+      } else {
+        anchor.dataset.scriptBlockId = target.id;
+      }
+      anchor.textContent = sourceSelection.text || liveRange.toString() || label;
+
+      liveRange.deleteContents();
+      liveRange.insertNode(anchor);
+      return sanitizeRichHtml(targetNode.innerHTML);
+    }
+
+    function readInlineLinks(html) {
+      const template = document.createElement("template");
+      template.innerHTML = html || "";
+      return Array.from(template.content.querySelectorAll("a[data-quick-item-id], a[data-script-block-id]")).map((anchor) => ({
+        kind: anchor.dataset.quickItemId ? "quick-item" : "script-block",
+        id: anchor.dataset.quickItemId || anchor.dataset.scriptBlockId,
+        text: anchor.textContent.trim()
+      }));
+    }
+
+    function formatScriptBlockTargetLabel(blockId) {
+      const script = findScriptByBlockId(blockId);
+      if (!script) return "Реплика сценария";
+      const index = script.blocks.findIndex((block) => block.id === blockId);
+      return index >= 0 ? `Реплика ${index + 1}` : "Реплика сценария";
+    }
+
+    function handleMindMapWheel(event) {
+      if (!state.mindMapOpen || !event.target.closest("#mindMapBoard")) return;
+      event.preventDefault();
+
+      const oldZoom = state.mindMapZoom;
+      const nextZoom = Math.min(2.2, Math.max(0.45, oldZoom + (event.deltaY < 0 ? 0.1 : -0.1)));
+      if (nextZoom === oldZoom) return;
+
+      const rect = els.mindMapBoard.getBoundingClientRect();
+      const offsetX = event.clientX - rect.left;
+      const offsetY = event.clientY - rect.top;
+      const worldX = (els.mindMapBoard.scrollLeft + offsetX) / oldZoom;
+      const worldY = (els.mindMapBoard.scrollTop + offsetY) / oldZoom;
+
+      state.mindMapZoom = Number(nextZoom.toFixed(2));
+      applyMindMapViewportScale();
+
+      els.mindMapBoard.scrollLeft = worldX * state.mindMapZoom - offsetX;
+      els.mindMapBoard.scrollTop = worldY * state.mindMapZoom - offsetY;
+    }
+
+    function applyMindMapViewportScale() {
+      const width = state.mindMapMetrics.width || 0;
+      const height = state.mindMapMetrics.height || 0;
+      els.mindMapViewport.style.width = `${width * state.mindMapZoom}px`;
+      els.mindMapViewport.style.height = `${height * state.mindMapZoom}px`;
+      els.mindMapCanvas.style.transform = `scale(${state.mindMapZoom})`;
+    }
+
+    function handleMindMapMouseDown(event) {
+      if (!state.mindMapOpen) return;
+
+      if (event.button === 1) {
+        event.preventDefault();
+        mindMapPanState = {
+          startX: event.clientX,
+          startY: event.clientY,
+          scrollLeft: els.mindMapBoard.scrollLeft,
+          scrollTop: els.mindMapBoard.scrollTop
+        };
+        els.mindMapBoard.classList.add("is-panning");
+        return;
+      }
+
+      if (event.button !== 0 || !state.editMode) return;
+      const nodeEl = event.target.closest("[data-mind-node-id]");
+      if (!nodeEl) return;
+      if (event.target.closest("[data-field='html']")) return;
+      if (event.target.closest("[data-mindmap-action='focus-node'], [data-mindmap-action='open-add-link'], [data-mindmap-action='remove-link'], a")) return;
+      event.preventDefault();
+
+      const nodeId = nodeEl.dataset.mindNodeId;
+      const source = findMindMapNode(nodeId);
+      if (!source) return;
+
+      const dragHandle = event.target.closest("[data-mindmap-drag-handle='true']") || nodeEl.querySelector("[data-mindmap-drag-handle='true']") || nodeEl;
+      const rect = dragHandle.getBoundingClientRect();
+      const boardRect = els.mindMapBoard.getBoundingClientRect();
+      mindMapDragState = {
+        sourceNodeId: nodeId,
+        source,
+        pointerStartX: event.clientX,
+        pointerStartY: event.clientY,
+        startX: rect.left + rect.width / 2 - boardRect.left + els.mindMapBoard.scrollLeft,
+        startY: rect.top + rect.height / 2 - boardRect.top + els.mindMapBoard.scrollTop,
+        targetNodeId: null,
+        active: false
+      };
+      document.body.classList.add("mindmap-link-dragging");
+    }
+
+    function handleMindMapMouseMove(event) {
+      if (mindMapPanState) {
+        const deltaX = event.clientX - mindMapPanState.startX;
+        const deltaY = event.clientY - mindMapPanState.startY;
+        els.mindMapBoard.scrollLeft = mindMapPanState.scrollLeft - deltaX;
+        els.mindMapBoard.scrollTop = mindMapPanState.scrollTop - deltaY;
+        return;
+      }
+
+      if (!mindMapDragState) return;
+      const distance = Math.hypot(event.clientX - mindMapDragState.pointerStartX, event.clientY - mindMapDragState.pointerStartY);
+      if (!mindMapDragState.active && distance < 6) return;
+      mindMapDragState.active = true;
+
+      const boardRect = els.mindMapBoard.getBoundingClientRect();
+      const currentX = event.clientX - boardRect.left + els.mindMapBoard.scrollLeft;
+      const currentY = event.clientY - boardRect.top + els.mindMapBoard.scrollTop;
+      updateMindMapDragPreview(mindMapDragState.startX / state.mindMapZoom, mindMapDragState.startY / state.mindMapZoom, currentX / state.mindMapZoom, currentY / state.mindMapZoom);
+
+      const targetNode = document.elementFromPoint(event.clientX, event.clientY)?.closest?.("[data-mind-node-id]");
+      const targetNodeId = targetNode?.dataset.mindNodeId || null;
+      highlightMindMapDropTarget(targetNodeId && targetNodeId !== mindMapDragState.sourceNodeId ? targetNodeId : null);
+      mindMapDragState.targetNodeId = targetNodeId && targetNodeId !== mindMapDragState.sourceNodeId ? targetNodeId : null;
+    }
+
+    function handleMindMapMouseUp() {
+      if (mindMapPanState) {
+        mindMapPanState = null;
+        els.mindMapBoard.classList.remove("is-panning");
+      }
+
+      if (!mindMapDragState) return;
+      const dropTargetId = mindMapDragState.targetNodeId;
+      const sourceNodeId = mindMapDragState.sourceNodeId;
+      clearMindMapDragPreview();
+      highlightMindMapDropTarget(null);
+      mindMapDragState = null;
+      document.body.classList.remove("mindmap-link-dragging");
+
+      if (!dropTargetId) {
+        els.contentStatus.textContent = "Для создания связи перетащите реплику на другую карточку";
+        return;
+      }
+      const targetNode = findMindMapNode(dropTargetId);
+      if (!targetNode) return;
+      els.contentStatus.textContent = "Цель связи выбрана. Подтвердите создание ссылки в окне.";
+      openMindMapLinkModal(sourceNodeId, {
+        preselectedTarget: targetNode.ownerKind === "quick"
+          ? { kind: "quick-item", id: targetNode.ownerId }
+          : { kind: "script-block", id: targetNode.block.id }
+      });
+    }
+
+    function updateMindMapDragPreview(startX, startY, endX, endY) {
+      const preview = els.mindMapCanvas.querySelector("#mindMapDragPreview");
+      if (!preview) return;
+      const bend = Math.max(54, (endX - startX) / 2);
+      preview.setAttribute("d", `M ${startX} ${startY} C ${startX + bend} ${startY}, ${endX - bend} ${endY}, ${endX} ${endY}`);
+      preview.classList.remove("hidden");
+    }
+
+    function clearMindMapDragPreview() {
+      const preview = els.mindMapCanvas.querySelector("#mindMapDragPreview");
+      if (!preview) return;
+      preview.setAttribute("d", "");
+      preview.classList.add("hidden");
+    }
+
+    function highlightMindMapDropTarget(nodeId) {
+      els.mindMapCanvas.querySelectorAll(".mindmap-node.is-link-target").forEach((node) => {
+        node.classList.remove("is-link-target");
+      });
+      if (!nodeId) return;
+      els.mindMapCanvas.querySelector(`[data-mind-node-id="${nodeId}"]`)?.classList.add("is-link-target");
     }
 
     function showSelectionPopover(range) {
@@ -1380,6 +2521,57 @@
       pendingLinkSelection = null;
       hideSelectionPopover();
       saveData(`Ссылка привязана к ответу "${quickItem.title}"`);
+      render();
+    }
+
+    function attachScriptBlockLink(blockId) {
+      const block = findBlock(blockId);
+      if (!block) return;
+      attachLinkTarget({
+        datasetKey: "scriptBlockId",
+        datasetValue: blockId,
+        successMessage: "Ссылка на реплику основного сценария добавлена"
+      });
+    }
+
+    function attachLinkTarget({ datasetKey, datasetValue, successMessage }) {
+      if (!pendingLinkSelection?.targetId || pendingLinkSelection.start === undefined || pendingLinkSelection.end === undefined) {
+        els.contentStatus.textContent = "Сначала выделите слово или фразу в центральном тексте";
+        return;
+      }
+
+      const target = pendingLinkSelection.kind === "quick-item"
+        ? findQuickItem(pendingLinkSelection.targetId)
+        : pendingLinkSelection.kind === "quick-block"
+          ? findQuickBlock(pendingLinkSelection.targetId)
+          : findBlock(pendingLinkSelection.targetId);
+      const targetNode = els.content.querySelector(`[data-kind="${pendingLinkSelection.kind}"][data-id="${pendingLinkSelection.targetId}"][data-field="html"]`);
+      if (!target || !targetNode) return;
+
+      const liveRange = createRangeFromOffsets(targetNode, pendingLinkSelection.start, pendingLinkSelection.end);
+      if (!liveRange) {
+        els.contentStatus.textContent = "Не удалось восстановить выделение для ссылки";
+        return;
+      }
+
+      const anchor = document.createElement("a");
+      anchor.href = "#";
+      anchor.className = "script-inline-link";
+      anchor.dataset[datasetKey] = datasetValue;
+      anchor.textContent = pendingLinkSelection.text || liveRange.toString();
+
+      liveRange.deleteContents();
+      liveRange.insertNode(anchor);
+
+      target.html = sanitizeRichHtml(targetNode.innerHTML);
+      target.text = extractTextFromHtml(target.html);
+      if (pendingLinkSelection.kind === "quick-block") {
+        const quickItem = findQuickItemByBlockId(pendingLinkSelection.targetId);
+        if (quickItem) syncQuickItemText(quickItem);
+      }
+      pendingLinkSelection = null;
+      hideSelectionPopover();
+      saveData(successMessage);
       render();
     }
 
@@ -1559,6 +2751,7 @@
     }
 
     function exportData() {
+      saveData("Состояние сохранено перед экспортом");
       const blob = new Blob([JSON.stringify(state.data, null, 2)], { type: "application/json" });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
@@ -1600,6 +2793,107 @@
 
     function getActiveQuickItem() {
       return findQuickItem(state.activeQuickResponseId);
+    }
+
+    function renderContentFontControls() {
+      return `
+        <div class="font-size-controls">
+          <button class="icon-btn" type="button" data-content-action="font-size-decrease" title="Уменьшить шрифт">A-</button>
+          <button class="icon-btn" type="button" data-content-action="font-size-reset" title="Стандартный размер">${state.contentFontSize}px</button>
+          <button class="icon-btn" type="button" data-content-action="font-size-increase" title="Увеличить шрифт">A+</button>
+        </div>
+      `;
+    }
+
+    function applyContentFontSize() {
+      document.documentElement.style.setProperty("--content-font-size", `${state.contentFontSize}px`);
+    }
+
+    function setContentFontSize(nextSize) {
+      state.contentFontSize = Math.min(24, Math.max(10, nextSize));
+      localStorage.setItem(CONTENT_FONT_SIZE_KEY, String(state.contentFontSize));
+      applyContentFontSize();
+      renderContent();
+    }
+
+    function updateContentFontSize(delta) {
+      setContentFontSize(state.contentFontSize + delta);
+    }
+
+    function getActiveContentBlocks() {
+      if (state.centerMode === "quick") {
+        const quickItem = getActiveQuickItem();
+        return quickItem ? getQuickBlocks(quickItem) : null;
+      }
+      const script = getActiveScript();
+      return script?.blocks || null;
+    }
+
+    function findScriptByBlockId(blockId) {
+      for (const section of state.data.sections) {
+        const script = section.scripts.find((item) => item.blocks.some((block) => block.id === blockId));
+        if (script) return script;
+      }
+      return null;
+    }
+
+    function findSectionByScriptId(scriptId) {
+      return state.data.sections.find((section) => section.scripts.some((script) => script.id === scriptId)) || null;
+    }
+
+    function navigateToScriptBlock(blockId) {
+      const script = findScriptByBlockId(blockId);
+      if (!script) return;
+      const section = findSectionByScriptId(script.id);
+      if (!section) return;
+
+      resetQuickViewHistory();
+      state.centerMode = "script";
+      state.activeQuickResponseId = null;
+      state.activeSectionId = section.id;
+      state.activeScriptId = script.id;
+      state.pendingHighlightBlockId = blockId;
+      render();
+    }
+
+    function revealPendingHighlightBlock() {
+      if (!state.pendingHighlightBlockId || state.centerMode !== "script") return;
+
+      const blockId = state.pendingHighlightBlockId;
+      requestAnimationFrame(() => {
+        const blockNode = els.content.querySelector(`[data-block-drop-zone="${blockId}"]`);
+        if (!blockNode) return;
+        clearResumeHighlight();
+        blockNode.classList.add("is-resume-target");
+        blockNode.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+      state.pendingHighlightBlockId = null;
+    }
+
+    function clearResumeHighlight() {
+      els.content.querySelectorAll(".is-resume-target").forEach((node) => {
+        node.classList.remove("is-resume-target");
+      });
+    }
+
+    function resetQuickViewHistory() {
+      state.quickViewHistory = [];
+    }
+
+    function pushCurrentViewToHistory() {
+      state.quickViewHistory.push({
+        centerMode: state.centerMode,
+        activeQuickResponseId: state.activeQuickResponseId
+      });
+    }
+
+    function goBackOneLevel() {
+      const previousView = state.quickViewHistory.pop();
+      if (!previousView) return;
+      state.centerMode = previousView.centerMode;
+      state.activeQuickResponseId = previousView.activeQuickResponseId;
+      renderContent();
+      renderQuickPanel();
     }
 
     function findSection(id) {
@@ -1664,14 +2958,14 @@
         return;
       }
 
-      state.selectedModalQuickItemId = null;
+      state.selectedModalLinkTarget = null;
       renderLinkModal();
       hideSelectionPopover();
       els.linkModal.classList.remove("hidden");
     }
 
     function closeLinkModal() {
-      state.selectedModalQuickItemId = null;
+      state.selectedModalLinkTarget = null;
       els.linkModal.classList.add("hidden");
     }
 
@@ -1683,23 +2977,46 @@
       const allItems = state.data.quickGroups.flatMap((group) =>
         group.items.map((item) => ({ groupTitle: group.title, item }))
       );
+      const currentScript = getActiveScript();
+      const currentScriptBlockItems = (currentScript?.blocks || []).map((block, index) => ({
+        block,
+        index
+      }));
 
-      els.linkModalList.innerHTML = allItems.map(({ groupTitle, item }) => `
-        <button class="modal-option ${item.id === state.selectedModalQuickItemId ? "is-active" : ""}" data-modal-action="choose-link" data-item-id="${item.id}">
+      const quickItemsHtml = allItems.map(({ groupTitle, item }) => `
+        <button class="modal-option ${state.selectedModalLinkTarget?.kind === "quick-item" && item.id === state.selectedModalLinkTarget.id ? "is-active" : ""}" data-modal-action="choose-quick-link" data-item-id="${item.id}">
           <strong>${escapeHtml(item.title)}</strong>
-          <span>${escapeHtml(groupTitle)}</span>
+          <span>Быстрый ответ · ${escapeHtml(groupTitle)}</span>
           <span>${escapeHtml((item.text || "").slice(0, 120) || "Без текста")}</span>
         </button>
-      `).join("") || '<div class="empty-state">Пока нет быстрых ответов. Создайте первый ниже.</div>';
+      `).join("");
+      const scriptBlocksHtml = currentScriptBlockItems.map(({ block, index }) => `
+        <button class="modal-option ${state.selectedModalLinkTarget?.kind === "script-block" && block.id === state.selectedModalLinkTarget.id ? "is-active" : ""}" data-modal-action="choose-script-block-link" data-block-id="${block.id}">
+          <strong>Реплика ${index + 1}</strong>
+          <span>Основной сценарий · ${escapeHtml(currentScript?.title || "")}</span>
+          <span>${escapeHtml((block.text || "").slice(0, 140) || "Без текста")}</span>
+        </button>
+      `).join("");
 
-      els.linkModalList.querySelectorAll("[data-modal-action='choose-link']").forEach((button) => {
+      els.linkModalList.innerHTML = `
+        ${scriptBlocksHtml ? scriptBlocksHtml : '<div class="empty-state">В основном сценарии пока нет реплик для возврата.</div>'}
+        ${quickItemsHtml ? quickItemsHtml : '<div class="empty-state">Пока нет быстрых ответов. Создайте первый ниже.</div>'}
+      `;
+
+      els.linkModalList.querySelectorAll("[data-modal-action='choose-quick-link']").forEach((button) => {
         button.addEventListener("click", () => {
-          state.selectedModalQuickItemId = button.dataset.itemId;
+          state.selectedModalLinkTarget = { kind: "quick-item", id: button.dataset.itemId };
+          renderLinkModal();
+        });
+      });
+      els.linkModalList.querySelectorAll("[data-modal-action='choose-script-block-link']").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.selectedModalLinkTarget = { kind: "script-block", id: button.dataset.blockId };
           renderLinkModal();
         });
       });
 
-      els.attachSelectedLinkBtn.disabled = !state.selectedModalQuickItemId;
+      els.attachSelectedLinkBtn.disabled = !state.selectedModalLinkTarget;
     }
 
     function createQuickResponseFromModal() {
@@ -1815,9 +3132,15 @@
 
         if (tag === "a") {
           const itemId = node.dataset.quickItemId;
+          const scriptBlockId = node.dataset.scriptBlockId;
           const text = node.textContent.trim();
-          if (!itemId || !findQuickItem(itemId) || !text) return escapeHtml(node.textContent);
-          return `<a href="#" class="script-inline-link" data-quick-item-id="${escapeHtml(itemId)}">${escapeHtml(text)}</a>`;
+          if (itemId && findQuickItem(itemId) && text) {
+            return `<a href="#" class="script-inline-link" data-quick-item-id="${escapeHtml(itemId)}">${escapeHtml(text)}</a>`;
+          }
+          if (scriptBlockId && findBlock(scriptBlockId) && text) {
+            return `<a href="#" class="script-inline-link" data-script-block-id="${escapeHtml(scriptBlockId)}">${escapeHtml(text)}</a>`;
+          }
+          return escapeHtml(node.textContent);
         }
 
         const inner = Array.from(node.childNodes).map(sanitizeNode).join("");
@@ -1835,7 +3158,23 @@
     function extractTextFromHtml(html) {
       const template = document.createElement("template");
       template.innerHTML = html;
-      return template.content.textContent.trim();
+
+      const readNodeText = (node) => {
+        if (node.nodeType === Node.TEXT_NODE) return node.textContent;
+        if (node.nodeType !== Node.ELEMENT_NODE) return "";
+
+        const tag = node.tagName.toLowerCase();
+        if (tag === "br") return "\n";
+
+        const inner = Array.from(node.childNodes).map(readNodeText).join("");
+        if (tag === "div" || tag === "p") return `${inner}\n`;
+        return inner;
+      };
+
+      return Array.from(template.content.childNodes).map(readNodeText).join("")
+        .replace(/\u00a0/g, " ")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
     }
 
     function scriptMatches(script, filter) {
